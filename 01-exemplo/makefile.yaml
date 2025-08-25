@@ -1,0 +1,36 @@
+makefile:
+  include:
+    file: "/home/ivan/wx/wxWidgets-3.2.4-linux/build/bakefiles/common_samples.bkl"
+
+  conditions:
+    - if: "OUT_OF_TREE_MAKEFILES=='1'"
+      set:
+        USE_OPENGL: 1
+
+  variables:
+    SYS_GL_LIB:
+      if: "PLATFORM_WIN32=='0' and OUT_OF_TREE_MAKEFILES=='1'"
+      value: "GL"
+
+  executables:
+    pyramid:
+      template: "wx_sample"
+      template_append: "wx_append"
+      condition: "USE_OPENGL=='1'"
+      sources:
+        - pyramid.cpp
+        - oglstuff.cpp
+        - mathstuff.cpp
+        - oglpfuncs.cpp
+      headers:
+        - pyramid.h
+        - oglstuff.h
+        - mathstuff.h
+        - oglpfuncs.h
+      libraries:
+        wx:
+          - gl
+          - core
+          - base
+        sys:
+          - "$(SYS_GL_LIB)"

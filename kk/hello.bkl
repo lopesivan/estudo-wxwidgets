@@ -1,0 +1,4 @@
+toolsets = gnu vs2010;
+program hello {
+    sources { hello.cpp } // could also have been "hello.c"
+}

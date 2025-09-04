@@ -65,6 +65,9 @@ all: $(PROGRAM)
 
 $(PROGRAM): $(OBJS)
 
+run: $(PROGRAM)
+	./$(PROGRAM).exe
+
 ldd: $(PROGRAM)
 	# Ver as bibliotecas linkadas
 	ldd $^| grep libwx_

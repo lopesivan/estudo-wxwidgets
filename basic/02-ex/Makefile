@@ -7,9 +7,10 @@ DEPS       := $(OBJS:.o=.d)
 # Configuração do wxWidgets
 # =========================
 V              ?= 3.2.4
+OS             ?= linux
 WX_BASE_DIR    ?= $(HOME)/wx
-WX_SRC_DIR     ?= $(WX_BASE_DIR)/wxWidgets-$(V)-linux
-WX_INSTALL_DIR ?= $(WX_BASE_DIR)/linux-wx-$(V)
+WX_SRC_DIR     ?= $(WX_BASE_DIR)/wxWidgets-$(V)-$(OS)
+WX_INSTALL_DIR ?= $(WX_BASE_DIR)/$(OS)-wx-$(V)
 WX_LIB_PATH    ?= $(WX_INSTALL_DIR)/lib
 
 # Permita sobrescrever WX_CONFIG via ambiente, senão use o padrão

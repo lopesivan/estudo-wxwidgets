@@ -66,7 +66,7 @@ all: $(PROGRAM)
 $(PROGRAM): $(OBJS)
 
 run: $(PROGRAM)
-	./$(PROGRAM).exe
+	./$(PROGRAM)
 
 ldd: $(PROGRAM)
 	# Ver as bibliotecas linkadas

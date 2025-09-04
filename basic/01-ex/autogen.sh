@@ -19,8 +19,12 @@ PYENV_VERSION="$PYTHON_VERSION" \
     -I ${WX_SRC_DIR}/build/bakefiles/wxpresets/presets
 
 if test -e Makefile; then
-    WX_CONFIG=$WX_INSTALL_DIR/bin/wx-config \
+    PATH=/usr/bin:bin \
+        WX_CONFIG=$WX_INSTALL_DIR/bin/wx-config \
         make
 fi
 
+# /usr/local/bin
+# /bin
+# /usr/bin
 exit 0

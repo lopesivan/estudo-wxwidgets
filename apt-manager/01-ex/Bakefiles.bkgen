@@ -4,15 +4,15 @@
     Disable all formats except GCC-related ones
     -->
   <disable-formats>borland,dmars,dmars_smake,msvc,msvc6prj,msvs2003prj,msvs2005prj,msvs2008prj,watcom,autoconf</disable-formats>
-  <!-- Input files: your hello.bkl file -->
-  <input>hello.bkl</input>
+  <!-- Input files: your app-manager.bkl file -->
+  <input>app-manager.bkl</input>
   <!-- List of output formats to generate: only GCC formats -->
   <add-formats>gnu</add-formats>
   <!-- Default flags (for all formats and bakefiles): -->
   <add-flags>-Iformats</add-flags>
   <!-- Output file locations for GCC formats: -->
   <!-- GNU Makefile (Unix/Linux native) -->
-  <add-flags files="hello.bkl" formats="gnu">-oMakefile</add-flags>
+  <add-flags files="app-manager.bkl" formats="gnu">-oMakefile</add-flags>
   <!-- Makefile specific settings: -->
   <!-- Configuration files for GCC -->
   <add-flags formats="gnu">-DWRITE_OPTIONS_FILE=0</add-flags>

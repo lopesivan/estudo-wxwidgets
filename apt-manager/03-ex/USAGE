@@ -1,0 +1,34 @@
+# Modos de compilacao:
+
+## modo 1
+RPATH=1 make
+ldd bin/app | head
+	linux-vdso.so.1 (0x00007bc46b3b5000)
+	libwx_gtk3u_core-3.2.so.0 => /home/ivan/wx/linux-wx-3.2.4/lib/libwx_gtk3u_core-3.2.so.0 (0x00007bc46aa00000)
+	libwx_baseu-3.2.so.0 => /home/ivan/wx/linux-wx-3.2.4/lib/libwx_baseu-3.2.so.0 (0x00007bc46a600000)
+	libstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007bc46a200000)
+	libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007bc46b336000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007bc469e00000)
+	libgtk-3.so.0 => /lib/x86_64-linux-gnu/libgtk-3.so.0 (0x00007bc469600000)
+	libgdk-3.so.0 => /lib/x86_64-linux-gnu/libgdk-3.so.0 (0x00007bc46a905000)
+	libpangocairo-1.0.so.0 => /lib/x86_64-linux-gnu/libpangocairo-1.0.so.0 (0x00007bc46b323000)
+	libpango-1.0.so.0 => /lib/x86_64-linux-gnu/libpango-1.0.so.0 (0x00007bc46a595000)
+
+
+## modo 2
+make
+ldd bin/app | head
+	linux-vdso.so.1 (0x00007b9eb523b000)
+	libwx_gtk3u_core-3.2.so.0 => /lib/x86_64-linux-gnu/libwx_gtk3u_core-3.2.so.0 (0x00007b9eb4800000)
+	libwx_baseu-3.2.so.0 => /lib/x86_64-linux-gnu/libwx_baseu-3.2.so.0 (0x00007b9eb4400000)
+	libstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007b9eb4000000)
+	libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007b9eb51bc000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007b9eb3c00000)
+	libgtk-3.so.0 => /lib/x86_64-linux-gnu/libgtk-3.so.0 (0x00007b9eb3400000)
+	libgdk-3.so.0 => /lib/x86_64-linux-gnu/libgdk-3.so.0 (0x00007b9eb50bf000)
+	libpangocairo-1.0.so.0 => /lib/x86_64-linux-gnu/libpangocairo-1.0.so.0 (0x00007b9eb50ae000)
+	libpango-1.0.so.0 => /lib/x86_64-linux-gnu/libpango-1.0.so.0 (0x00007b9eb5043000)
+
+## modo 3
+make DEBUG=1
+

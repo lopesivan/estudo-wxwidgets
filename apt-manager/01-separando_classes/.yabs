@@ -1,30 +1,35 @@
 return {
-    tasks = {
-        -- ./gradlew assemble
-        yabs_gradlew_assemble = {
-            command = function()
-                require("config.nvim_dev").app("./gradlew", { "assemble" })
-            end,
-            desc = "./gradlew assemble"
-        },
+	tasks = {
+		run = {
+			command = function()
+				require("config.nvim_dev").app("./apt_manager", { "" })
+			end,
+			desc = "./apt_manager",
+		},
+		autogen = {
+			command = function()
+				require("config.nvim_dev").app("./autogen.sh", { "" })
+			end,
+			desc = "./autogen.sh",
+		},
 
-        -- make build
-        yabs_make_build = {
-            command = function()
-                require("config.nvim_dev").make({ "build" })
-            end,
-            desc = "make build"
-        },
+		-- make build
+		yabs_make_build = {
+			command = function()
+				require("config.nvim_dev").make({ "build" })
+			end,
+			desc = "make build",
+		},
 
-        -- make init
-        yabs_make_init = {
-            command = function()
-                require("config.nvim_dev").make({ "init" })
-            end,
-            desc = "make init"
-        },
+		-- make init
+		yabs_make_init = {
+			command = function()
+				require("config.nvim_dev").make({ "init" })
+			end,
+			desc = "make init",
+		},
 
-        --[[ make run
+		--[[ make run
         yabs_make_run = {
             command = function()
                 require("config.nvim_dev").make({ "run" })
@@ -56,31 +61,5 @@ return {
             desc = "make clean"
         },
         ]]
-
-        -- ./gradlew assemble
-        yabs_gradlew_assemble = {
-            command = function()
-                require("config.nvim_dev").app("./gradlew", { "assemble" })
-            end,
-            desc = "./gradlew assemble"
-        },
-
-        -- ./gradlew clean
-        yabs_gradlew_clean = {
-            command = function()
-                require("config.nvim_dev").app("./gradlew", { "clean" })
-            end,
-            desc = "./gradlew clean"
-        },
-
-        -- adb -s emulator-5554 emu kill
-        ["adb -s emulator-5554 emu kill"] = {
-            command = function()
-                require("config.nvim_dev").app("adb", { "-s", "emulator-5554", "emu", "kill" })
-            end,
-            condition = require("yabs.conditions").file_exists("gradlew"),
-            type = "lua",
-        },
-    },
+	},
 }
-

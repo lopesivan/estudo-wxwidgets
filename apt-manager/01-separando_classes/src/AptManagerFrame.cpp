@@ -9,7 +9,7 @@ static bool ParseAptInstalledLine(const wxString& line,
                                   wxString& ver,
                                   wxString& arch)
 {
-    wxString s = line.Strip(wxString::both);
+    auto s = line.Strip(wxString::both);
     if (s.IsEmpty())
         return false;
     if (s.StartsWith("Listing"))
@@ -180,7 +180,7 @@ void AptManagerFrame::OnUpgrade(wxCommandEvent&)
     outputText->AppendText("Executando: sudo apt upgrade -y\n");
     outputText->AppendText("===============================\n");
 
-    wxString output = ExecuteCommandWithSudo("apt upgrade -y");
+    wxString output = ExecuteCommandWithSudo("apt upgrade");
 
     outputText->AppendText(output);
     outputText->AppendText("\n===============================\n");

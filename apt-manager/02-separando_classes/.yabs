@@ -1,0 +1,11 @@
+return {
+	tasks = {
+
+		app = {
+			command = function()
+				require("config.nvim_dev").app("./app")
+			end,
+			desc = "./app",
+		},
+	},
+}

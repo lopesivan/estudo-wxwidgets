@@ -15,7 +15,11 @@
         <runtime-libs>dynamic</runtime-libs>
 
         <!-- C++17 -->
-        <cxxflags>-std=c++17</cxxflags>
+        <!-- Wall warning -->
+        <cxxflags>
+        -std=c++17
+        -Wall
+        </cxxflags>
 
         <!-- Fontes -->
         <sources>

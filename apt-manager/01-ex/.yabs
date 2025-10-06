@@ -8,21 +8,4 @@ return {
 			desc = "./app",
 		},
 	},
-
-	["dotenv.build"] = {
-		command = function()
-			load_from_env("cmd", "build")
-		end,
-		condition = file_exists(".env"),
-		type = "lua",
-		desc = "executa BUILD={cmd1, cmd2,..} presente em .env",
-	},
-	["dotenv.rebuild"] = {
-		command = function()
-			load_from_env("cmd", "rebuild")
-		end,
-		condition = file_exists(".env"),
-		type = "lua",
-		desc = "executa REBUILD={cmd1, cmd2,..} presente em .env",
-	},
 }

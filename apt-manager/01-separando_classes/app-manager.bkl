@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<makefile>
+
+    <!-- Se você tiver o wx.bkl no próprio projeto, mantenha assim: -->
+    <include file="wx.bkl"/>
+
+    <!--
+    Alternativa: se preferir apontar para o wx.bkl do wxWidgets:
+    <include file="$(WXWIN)/build/bakefiles/wx.bkl"/>
+    -->
+
+    <exe id="apt_manager" template="wx">
+        <app-type>gui</app-type>
+        <debug-info>on</debug-info>
+        <runtime-libs>dynamic</runtime-libs>
+
+        <!-- C++17 -->
+        <cxxflags>-std=c++17</cxxflags>
+
+        <!-- Cabeçalhos do projeto -->
+        <include-path>include</include-path>
+
+        <!-- Fontes -->
+        <sources>
+            src/main.cpp
+            src/AptManagerApp.cpp
+            src/AptManagerFrame.cpp
+        </sources>
+
+        <!-- (opcional) Só para IDEs enxergarem os headers -->
+        <headers>
+            include/AptManagerApp.h
+            include/AptManagerFrame.h
+        </headers>
+
+        <!-- Bibliotecas wx necessárias -->
+        <wx-lib>core</wx-lib>
+        <wx-lib>base</wx-lib>
+    </exe>
+</makefile>

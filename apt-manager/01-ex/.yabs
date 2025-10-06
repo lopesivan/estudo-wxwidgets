@@ -1,40 +1,11 @@
 return {
 	tasks = {
-		yabs_autogen = {
-			command = function()
-				require("config.nvim_dev").app("./autogen.sh", { "" })
-			end,
-			desc = "./autogen.sh",
-		},
 
-		yabs_apt_manager = {
+		app = {
 			command = function()
-				require("config.nvim_dev").app("./apt-manager", { "" })
+				require("config.nvim_dev").app("./app")
 			end,
-			desc = "./apt-manager",
-		},
-
-		-- make clean
-		yabs_make_clean = {
-			command = function()
-				require("config.nvim_dev").make({ "clean" })
-			end,
-			desc = "make clean",
-		},
-
-		-- make
-		yabs_make = {
-			command = function()
-				require("config.nvim_dev").make({})
-			end,
-			desc = "make clean",
-		},
-
-		yabs_autogen = {
-			command = function()
-				require("config.nvim_dev").app("./autogen.sh", {})
-			end,
-			desc = "./autogen.sh",
+			desc = "./app",
 		},
 	},
 }

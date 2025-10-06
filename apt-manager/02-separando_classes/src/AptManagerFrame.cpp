@@ -165,7 +165,7 @@ void AptManagerFrame::OnUpdate(wxCommandEvent& event)
     outputText->AppendText("===============================\n");
 
     // Executar comando com privilégios de root (pede senha)
-    wxString output = ExecuteCommandWithSudo("apt update");
+    auto output = ExecuteCommandWithSudo("apt update");
 
     outputText->AppendText(output);
     outputText->AppendText("\n===============================\n");
@@ -236,6 +236,6 @@ wxString AptManagerFrame::ExecuteCommand(const wxString& command)
 wxString AptManagerFrame::ExecuteCommandWithSudo(const wxString& command)
 {
     // pkexec = PolicyKit Execute (substituto gráfico do sudo)
-    wxString fullCommand = "pkexec " + command;
+    auto fullCommand = "pkexec " + command;
     return ExecuteCommand(fullCommand);
 }

@@ -9,7 +9,7 @@
     <include file="$(WXWIN)/build/bakefiles/wx.bkl"/>
     -->
 
-    <exe id="apt_manager" template="wx">
+    <exe id="apt-manager" template="wx">
         <app-type>gui</app-type>
         <debug-info>on</debug-info>
         <runtime-libs>dynamic</runtime-libs>

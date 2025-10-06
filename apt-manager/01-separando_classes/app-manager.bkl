@@ -17,9 +17,6 @@
         <!-- C++17 -->
         <cxxflags>-std=c++17</cxxflags>
 
-        <!-- Cabeçalhos do projeto -->
-        <include-path>include</include-path>
-
         <!-- Fontes -->
         <sources>
             src/main.cpp
@@ -28,10 +25,7 @@
         </sources>
 
         <!-- (opcional) Só para IDEs enxergarem os headers -->
-        <headers>
-            include/AptManagerApp.h
-            include/AptManagerFrame.h
-        </headers>
+        <include>include</include>
 
         <!-- Bibliotecas wx necessárias -->
         <wx-lib>core</wx-lib>

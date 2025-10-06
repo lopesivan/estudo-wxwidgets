@@ -1,156 +1,154 @@
 # ============================================================================
 # Configuração Clang-Format - Estilo C++ Moderno
 # ============================================================================
-# Baseado em: Microsoft com customizações para C++ moderno
 # Uso: clang-format -i arquivo.cpp
 # ============================================================================
 BasedOnStyle: Microsoft
 Language: Cpp
+
 # ============================================================================
 # INDENTAÇÃO E LARGURA
 # ============================================================================
-IndentWidth: 4 # Indentação de 4 espaços
-TabWidth: 4 # Tab = 4 espaços
-UseTab: Never # Nunca usar tabs, sempre espaços
-ColumnLimit: 78 # 100 colunas (mais moderno que 78)
-ContinuationIndentWidth: 4 # Indentação para continuação de linha
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 80
+ContinuationIndentWidth: 4
+
 # ============================================================================
 # PONTEIROS E REFERÊNCIAS
 # ============================================================================
-DerivePointerAlignment: false # Não derivar estilo automaticamente
-PointerAlignment: Left # int* ptr (não int *ptr)
-ReferenceAlignment: Left # int& ref (não int &ref)
+DerivePointerAlignment: false
+PointerAlignment: Left
+ReferenceAlignment: Left
+
 # ============================================================================
 # CHAVES E BLOCOS
 # ============================================================================
-BreakBeforeBraces: Allman # Estilo Allman (chaves em nova linha)
-# Opções: Attach, Linux, Mozilla, Stroustrup, Allman, Whitesmiths, GNU, WebKit, Custom
-
-# Se usar Custom, você pode fazer:
-# BraceWrapping:
-#   AfterClass: true
-#   AfterControlStatement: true
-#   AfterEnum: true
-#   AfterFunction: true
-#   AfterNamespace: true
-#   AfterStruct: true
-#   AfterUnion: true
-#   BeforeCatch: true
-#   BeforeElse: true
+BreakBeforeBraces: Allman
 
 # ============================================================================
 # ESPAÇAMENTO
 # ============================================================================
-SpaceAfterCStyleCast: false # (int)x não (int) x
-SpaceAfterLogicalNot: false # !x não ! x
-SpaceAfterTemplateKeyword: true # template <typename T>
-SpaceBeforeAssignmentOperators: true # x = 1 não x=1
-SpaceBeforeCpp11BracedList: false # vector{1, 2, 3}
-SpaceBeforeCtorInitializerColon: true # Constructor() : member(0)
-SpaceBeforeInheritanceColon: true # class Derived : public Base
-SpaceBeforeParens: ControlStatements # if (x) não if(x), mas func() não func ()
-SpaceBeforeRangeBasedForLoopColon: true # for (auto x : vec)
-SpaceInEmptyParentheses: false # func() não func( )
-SpacesInAngles: false # vector<int> não vector< int >
-SpacesInCStyleCastParentheses: false # (int)x não ( int )x
-SpacesInContainerLiterals: false # {1, 2, 3} não { 1, 2, 3 }
-SpacesInParentheses: false # if (x) não if ( x )
-SpacesInSquareBrackets: false # arr[0] não arr[ 0 ]
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceInEmptyParentheses: false
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
 # ============================================================================
 # ALINHAMENTO
 # ============================================================================
-AlignAfterOpenBracket: Align # Alinha parâmetros após abertura
-AlignConsecutiveAssignments: false # Não alinha assignments verticalmente
-AlignConsecutiveDeclarations: false # Não alinha declarações verticalmente
-AlignConsecutiveMacros: true # Alinha macros #define
-AlignEscapedNewlines: Right # Alinha \ no fim de macros à direita
-AlignOperands: true # Alinha operandos de expressões longas
-AlignTrailingComments: true # Alinha comentários no fim da linha
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: None
+AlignConsecutiveDeclarations: None
+AlignConsecutiveMacros: Consecutive
+AlignEscapedNewlines: Right
+AlignOperands: Align
+AlignTrailingComments: true
+
 # ============================================================================
-# QUEBRAS DE LINHA
+# QUEBRAS DE LINHA - CONFIGURAÇÃO PARA PARÂMETROS EM LINHAS SEPARADAS
 # ============================================================================
-AllowAllArgumentsOnNextLine: true # Permite todos args na próxima linha
-AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortBlocksOnASingleLine: Empty # Permite {} vazio em uma linha
+AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: false
+BinPackArguments: false
+BinPackParameters: false
+AllowShortBlocksOnASingleLine: Empty
 AllowShortCaseLabelsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: Inline # Apenas funções inline curtas
-AllowShortIfStatementsOnASingleLine: Never # Nunca if (x) return;
-AllowShortLambdasOnASingleLine: All # Permite lambdas curtos em uma linha
-AllowShortLoopsOnASingleLine: false # Nunca while (x) continue;
-AlwaysBreakAfterReturnType: None # Tipo de retorno na mesma linha
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: All
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
-AlwaysBreakTemplateDeclarations: Yes # Quebra template em nova linha
-BreakBeforeBinaryOperators: None # a + b não a\n + b
-BreakBeforeTernaryOperators: true # x ?\n y : z
-BreakConstructorInitializers: BeforeColon # Constructor()\n: member(0)
-BreakInheritanceList: BeforeColon # class Derived\n: public Base
-BreakStringLiterals: true # Quebra strings longas
+AlwaysBreakTemplateDeclarations: Yes
+BreakBeforeBinaryOperators: None
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeColon
+BreakInheritanceList: BeforeColon
+BreakStringLiterals: true
+
 # ============================================================================
 # INCLUDES
 # ============================================================================
-SortIncludes: true # Ordena #includes
-IncludeBlocks: Regroup # Agrupa includes por categoria
+SortIncludes: CaseSensitive
+IncludeBlocks: Regroup
 IncludeCategories:
-  - Regex: '^<.*\.h>' # C headers
-    Priority: 1
-  - Regex: '^<.*>' # C++ standard library
-    Priority: 2
-  - Regex: '.*' # Outros headers
-    Priority: 3
+    - Regex: '^<.*\.h>'
+      Priority: 1
+    - Regex: "^<.*>"
+      Priority: 2
+    - Regex: ".*"
+      Priority: 3
+
 # ============================================================================
 # NAMESPACES
 # ============================================================================
-CompactNamespaces: false # Não compacta namespaces aninhados
-FixNamespaceComments: true # Adiciona // namespace name
-NamespaceIndentation: None # Não indenta conteúdo de namespace
+CompactNamespaces: false
+FixNamespaceComments: true
+NamespaceIndentation: None
+
 # ============================================================================
 # COMENTÁRIOS
 # ============================================================================
-ReflowComments: true # Reformata comentários para caber
-SpacesBeforeTrailingComments: 2 # x = 1;  // comment (2 espaços)
+ReflowComments: true
+SpacesBeforeTrailingComments: 2
+
 # ============================================================================
 # C++11/14/17/20 ESPECÍFICO
 # ============================================================================
-Cpp11BracedListStyle: true # vector<int>{1, 2, 3}
-Standard: Latest # Usa features mais recentes do C++
+Cpp11BracedListStyle: true
+Standard: Latest
+
 # ============================================================================
 # OUTROS
 # ============================================================================
-AccessModifierOffset: -4 # public: desindentado
-BinPackArguments: true # Empacota argumentos se couberem
-BinPackParameters: true # Empacota parâmetros se couberem
+AccessModifierOffset: -4
 ConstructorInitializerIndentWidth: 4
-DeriveLineEnding: true # Detecta \n ou \r\n automaticamente
-DisableFormat: false # Não desabilita formatação
+DeriveLineEnding: true
+DisableFormat: false
 ExperimentalAutoDetectBinPacking: false
-IndentCaseLabels: true # Indenta case: dentro de switch
-IndentGotoLabels: true # Indenta labels de goto
-IndentPPDirectives: None # Não indenta #if, #define, etc
+IndentCaseLabels: true
+IndentGotoLabels: true
+IndentPPDirectives: None
 IndentWrappedFunctionNames: false
-KeepEmptyLinesAtTheStartOfBlocks: false # Remove linhas vazias no início
-MaxEmptyLinesToKeep: 1 # Mantém no máximo 1 linha vazia
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
 PenaltyBreakAssignment: 2
-PenaltyBreakBeforeFirstCallParameter: 19
+PenaltyBreakBeforeFirstCallParameter: 1
 PenaltyBreakComment: 300
 PenaltyBreakFirstLessLess: 120
 PenaltyBreakString: 1000
 PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 60
-SortUsingDeclarations: true # Ordena using declarations
+SortUsingDeclarations: true
+
 # ============================================================================
 # TEMPLATES E LAMBDAS
 # ============================================================================
-IndentRequires: false # C++20 requires clause
-InsertTrailingCommas: None # Não adiciona vírgulas finais
-LambdaBodyIndentation: Signature # Indenta corpo do lambda
+IndentRequires: false
+InsertTrailingCommas: None
+LambdaBodyIndentation: Signature
+
 # ============================================================================
 # MACROS E PREPROCESSADOR
 # ============================================================================
-MacroBlockBegin: '' # Macro que inicia bloco
-MacroBlockEnd: '' # Macro que termina bloco
+MacroBlockBegin: ""
+MacroBlockEnd: ""
+
 # ============================================================================
 # QUALIFICADORES (const, volatile, static)
 # ============================================================================
-QualifierAlignment: Leave # Mantém posição de const/static
----
+QualifierAlignment: Leave

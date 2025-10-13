@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource version="2.3.0.1" xmlns="http://www.wxwidgets.org/wxxrc">
+  <object class="wxFrame" name="ID_WXFRAME">
+    <style>wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU|wxCLOSE_BOX</style>
+    <size>400,300</size>
+    <title>eu sou um frame</title>
+    <centered>1</centered>
+    <object class="wxPanel" name="ID_PANEL">
+      <style>wxSUNKEN_BORDER|wxTAB_TRAVERSAL</style>
+      <exstyle>wxWS_EX_VALIDATE_RECURSIVELY</exstyle>
+      <object class="wxBoxSizer">
+        <orient>wxVERTICAL</orient>
+        <!-- V: item 1 -->
+        <object class="sizeritem">
+          <flag>wxALIGN_CENTER_HORIZONTAL|wxALL</flag>
+          <border>5</border>
+          <object class="wxBoxSizer">
+            <orient>wxHORIZONTAL</orient>
+            <!-- H: item 1 -->
+            <object class="sizeritem">
+              <flag>wxALL</flag>
+              <border>5</border>
+              <object class="wxButton" name="BTN_REFRESH">
+                <label>Atualizar Lista</label>
+              </object>
+            </object>
+            <!-- H: item 2 -->
+            <object class="sizeritem">
+              <flag>wxALL</flag>
+              <border>5</border>
+              <object class="wxButton" name="BTN_UPDATE">
+                <label>APT Update</label>
+              </object>
+            </object>
+            <!-- H: item 3 -->
+            <object class="sizeritem">
+              <flag>wxALL</flag>
+              <border>5</border>
+              <object class="wxButton" name="BTN_UPGRADE">
+                <label>APT Upgrade</label>
+              </object>
+            </object>
+            <!-- H: item 4 -->
+            <object class="sizeritem">
+              <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+              <border>5</border>
+              <object class="wxButton" name="BTN_LIST_UPGRADABLE">
+                <label>Pacotes Atualizáveis</label>
+              </object>
+            </object>
+          </object>
+          <!-- H: FIM -->
+        </object>
+        <!-- V: item 2 -->
+        <object class="sizeritem">
+          <flag>wxALIGN_LEFT|wxALL</flag>
+          <border>5</border>
+          <object class="wxStaticText" name="ID_STATIC_TEXT_1">
+            <label>Pacotes Instalados:</label>
+          </object>
+        </object>
+        <!-- V: item 3 -->
+        <object class="sizeritem">
+          <flag>wxGROW|wxALL</flag>
+          <border>5</border>
+          <object class="wxListCtrl" name="ID_PACKAGE_LIST">
+            <size>100,100</size>
+            <style>wxLC_REPORT</style>
+          </object>
+        </object>
+        <!-- V: item 4 -->
+        <object class="sizeritem">
+          <flag>wxALIGN_LEFT|wxALL</flag>
+          <border>5</border>
+          <object class="wxStaticText" name="ID_STATIC_TEXT_2">
+            <label>Saída:</label>
+          </object>
+        </object>
+        <!-- V: item 5 -->
+        <object class="sizeritem">
+          <flag>wxGROW|wxALL</flag>
+          <border>5</border>
+          <object class="wxTextCtrl" name="ID_OUTPUT_TEXT">
+            <style>wxTE_MULTILINE</style>
+          </object>
+        </object>
+      </object>
+      <!-- V: FIM -->
+    </object>
+  </object>
+</resource>

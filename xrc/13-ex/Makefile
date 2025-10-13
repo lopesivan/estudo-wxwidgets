@@ -7,6 +7,33 @@ PROGRAM     ?= app
 EMBED_XRC   ?= 0
 XRC_FILE    ?= ui.xrc
 XRC_CPP     ?= ui_xrc.cpp
+IMAGE       := wizard.png
+
+IMAGEMAGIC_3 = \
+    -size 115x280 \
+	gradient:midnightblue-dodgerblue \
+	-fill gold \
+	-stroke black \
+	-strokewidth 1 \
+	-draw "ellipse 57,100 25,35 0,360" \
+	-fill white \
+	-pointsize 16 \
+	-font Arial \
+	-gravity north \
+	-annotate +0+30 "Wizard" \
+	-pointsize 10 \
+	-annotate +0+60 "Click to Start" \
+	-fill silver \
+	-draw "rectangle 25,180 90,200" \
+	-fill forestgreen \
+	-draw "rectangle 25,210 90,230" \
+	-strip \
+	-depth 8 \
+	-interlace none
+
+IMAGEMAGIC_1 = -size 115x280 xc:blue
+IMAGEMAGIC_2 = -size 115x280 gradient:blue-lightblue -pointsize 20 -fill white -gravity center -annotate +0+0 "Wizard"
+CONVERT_OPT = IMAGEMAGIC_1
 
 # Detecta fontes .cpp (e soma ui_xrc.cpp se EMBED_XRC=1)
 BASE_SOURCES := $(wildcard *.cpp)
@@ -81,30 +108,10 @@ LINK.o         = $(CXX) $(LDFLAGS)
 # =========================
 .PHONY: all run ldd readelf clean embed help
 
-all: $(PROGRAM)
+all: $(IMAGE) $(PROGRAM)
 
-wizard.png:
-	convert -size 115x280 \
-        gradient:midnightblue-dodgerblue \
-        -fill gold \
-        -stroke black \
-        -strokewidth 1 \
-        -draw "ellipse 57,100 25,35 0,360" \
-        -fill white \
-        -pointsize 16 \
-        -font Arial \
-        -gravity north \
-        -annotate +0+30 "Wizard" \
-        -pointsize 10 \
-        -annotate +0+60 "Click to Start" \
-        -fill silver \
-        -draw "rectangle 25,180 90,200" \
-        -fill forestgreen \
-        -draw "rectangle 25,210 90,230" \
-        -strip \
-        -depth 8 \
-        -interlace none \
-        wizard.png
+$(IMAGE):
+	convert $(CONVERT_OPT) $(IMAGE)
 
 $(PROGRAM): $(OBJS)
 	$(LINK.o) $^ $(LDLIBS) -o $@
@@ -131,7 +138,7 @@ readelf: $(PROGRAM)
 	readelf -d $^ | grep -E "(RPATH|RUNPATH)" || true
 
 clean:
-	/bin/rm -rf $(PROGRAM) $(OBJS) $(DEPS) $(XRC_CPP) wizard.png
+	/bin/rm -rf $(PROGRAM) $(OBJS) $(DEPS) $(XRC_CPP) $(IMAGE)
 
 # Dependências automáticas
 -include $(DEPS)

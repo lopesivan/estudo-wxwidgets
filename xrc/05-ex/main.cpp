@@ -120,6 +120,23 @@ public:
             packageList->AppendColumn("Arquitetura", wxLIST_FORMAT_LEFT, 300);
         }
 
+        auto* outputText = XRCCTRL(*frame, "ID_OUTPUT_TEXT", wxTextCtrl);
+        if (outputText)
+        {
+            // outputText->SetSize(wxSize(-1, 150));
+            // outputText->SetStyle(wxTE_MULTILINE | wxTE_READONLY);
+            outputText->Clear();
+            outputText->AppendText("Executando: sudo apt update\n");
+            outputText->AppendText("===============================\n");
+
+            // Executar comando com privilégios de root (pede senha)
+            // wxString output = ExecuteCommandWithSudo("apt update");
+
+            // outputText->AppendText(output);
+            outputText->AppendText("\n===============================\n");
+            outputText->AppendText("Comando concluído!\n");
+        }
+
         frame->Layout();  // recalcula sizers após mudar labels
         frame->Show(true);
 

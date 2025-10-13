@@ -1,0 +1,10 @@
+
+RPATH=1 make
+
+DEBUG=1 make
+
+RPATH=1 DEBUG=1 make
+
+make EMBED_XRC=1
+
+LD_LIBRARY_PATH="$HOME/wx/linux-wx-3.2.4/lib:$LD_LIBRARY_PATH" ./app

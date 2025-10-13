@@ -80,7 +80,7 @@ public:
         wxString mail = mailCtrl ? mailCtrl->GetValue() : "Não informado";
         wxString terms = (termsChk && termsChk->GetValue()) ? "Sim" : "Não";
 
-        wxString texto = "iiResumo da configuração:\n\n";
+        wxString texto = "Resumo da configuração:\n\n";
         texto += "Nome de usuário: " + user + "\n";
         texto += "Email: " + mail + "\n";
         texto += "Termos aceitos: " + terms + "\n\n";

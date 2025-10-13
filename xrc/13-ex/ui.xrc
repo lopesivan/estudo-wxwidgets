@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource version="2.3.0.1" xmlns="http://www.wxwidgets.org/wxxrc">
+  <object class="wxWizard" name="ID_WIZARD">
+    <title>Assistente de Configuração</title>
+    <bitmap>wizard.png</bitmap>
+  </object>
+</resource>

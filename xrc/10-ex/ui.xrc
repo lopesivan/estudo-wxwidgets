@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource version="2.3.0.1" xmlns="http://www.wxwidgets.org/wxxrc">
+
+  <object class="wxWizard" name="ID_WXWIZARD">
+    <style>wxDEFAULT_DIALOG_STYLE|wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU|wxCLOSE_BOX</style>
+    <exstyle>wxWS_EX_BLOCK_EVENTS|wxWIZARD_EX_HELPBUTTON</exstyle>
+    <title>Mensagem</title>
+  </object>
+
+  <object class="wxWizardPageSimple" name="PAGE_1">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <flag>wxALL</flag><border>12</border>
+        <object class="wxStaticText" name="TXT_P1">
+          <label>Bem-vindo! Esta é a página 1.</label>
+        </object>
+      </object>
+    </object>
+  </object>
+
+  <object class="wxWizardPageSimple" name="PAGE_2">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <flag>wxALL</flag><border>12</border>
+        <object class="wxStaticText" name="TXT_P2">
+          <label>Fim! Esta é a página 2.</label>
+        </object>
+      </object>
+    </object>
+  </object>
+
+</resource>

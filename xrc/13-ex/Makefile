@@ -9,7 +9,25 @@ XRC_FILE    ?= ui.xrc
 XRC_CPP     ?= ui_xrc.cpp
 IMAGE       := wizard.png
 
-IMAGEMAGIC_3 = \
+IMAGEMAGIC_1 := -size 115x280 xc:blue
+IMAGEMAGIC_2 := -size 115x280 gradient:blue-lightblue -pointsize 20 -fill white -gravity center -annotate +0+0 "Wizard"
+IMAGEMAGIC_3 := \
+	-size 115x280 \
+	gradient:darkblue-lightblue \
+	-fill white \
+	-stroke navy \
+	-strokewidth 2 \
+	-draw "roundrectangle 20,40 95,120 10,10" \
+	-fill yellow \
+	-draw "circle 57,80 57,65" \
+	-fill white \
+	-pointsize 12 \
+	-gravity south \
+	-annotate +0+50 "Assistente" \
+	-pointsize 10 \
+	-annotate +0+30 "de Configuração" \
+	-strip
+IMAGEMAGIC_4 := \
     -size 115x280 \
 	gradient:midnightblue-dodgerblue \
 	-fill gold \
@@ -31,9 +49,8 @@ IMAGEMAGIC_3 = \
 	-depth 8 \
 	-interlace none
 
-IMAGEMAGIC_1 = -size 115x280 xc:blue
-IMAGEMAGIC_2 = -size 115x280 gradient:blue-lightblue -pointsize 20 -fill white -gravity center -annotate +0+0 "Wizard"
-CONVERT_OPT = IMAGEMAGIC_1
+
+CONVERT_OPT  := $(IMAGEMAGIC_3)
 
 # Detecta fontes .cpp (e soma ui_xrc.cpp se EMBED_XRC=1)
 BASE_SOURCES := $(wildcard *.cpp)

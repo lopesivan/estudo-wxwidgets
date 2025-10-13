@@ -3,6 +3,7 @@
 #include <wx/wx.h>
 #endif
 
+#include <wx/image.h> // <-- add este include
 #include <wx/wizard.h>
 #include <wx/xrc/xh_all.h> // garante handlers, inclusive wizard
 #include <wx/xrc/xmlres.h>

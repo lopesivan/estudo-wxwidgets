@@ -44,16 +44,35 @@ public:
         // wxButton* btnUpgrade;         // Botão "APT Upgrade"
         // wxButton* btnListUpgradable;  // Botão "Pacotes Atualizáveis"
 
+        /*
         auto* btnRefresh = XRCCTRL(*frame, "BTN_REFRESH", wxButton);
         if (btnRefresh)
         {
             btnRefresh->SetLabel("Atualizar Lista");
+            btnRefresh->Bind(wxEVT_BUTTON, [](wxCommandEvent&) {});
+        } */
+
+        auto* btnRefresh = XRCCTRL(*frame, "BTN_REFRESH", wxButton);
+        if (btnRefresh)
+        {
+            btnRefresh->SetLabel("Atualizar Lista");
+            btnRefresh->Bind(wxEVT_BUTTON,
+                             [frame](wxCommandEvent&)
+                             {
+                                 wxMessageBox("Atualizando a lista...",
+                                              "Info",
+                                              wxOK | wxICON_INFORMATION,
+                                              frame);
+                             });
         }
 
         auto* btnUpdate = XRCCTRL(*frame, "BTN_UPDATE", wxButton);
         if (btnUpdate)
         {
             btnUpdate->SetLabel("APT Update");
+            btnUpdate->Bind(wxEVT_BUTTON,
+                            [frame](wxCommandEvent&)
+                            { wxPrintf("Atualizando a lista...\n"); });
         }
 
         auto* btnUpgrade = XRCCTRL(*frame, "BTN_UPGRADE", wxButton);
@@ -89,6 +108,16 @@ public:
                 // garante UTF-8
                 wxString::FromUTF8(
                     u8"Pacotes Atualizáveis t t t t t t t t t "));
+        }
+
+        auto* packageList = XRCCTRL(*frame, "ID_PACKAGE_LIST", wxListCtrl);
+        if (packageList)
+        {
+            // Criar 3 colunas na tabela
+            packageList->AppendColumn("Pacote", wxLIST_FORMAT_LEFT, 300);
+            packageList->AppendColumn(
+                wxString::FromUTF8(u8"Versão"), wxLIST_FORMAT_LEFT, 300);
+            packageList->AppendColumn("Arquitetura", wxLIST_FORMAT_LEFT, 300);
         }
 
         frame->Layout();  // recalcula sizers após mudar labels

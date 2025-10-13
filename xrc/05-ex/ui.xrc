@@ -80,7 +80,7 @@
         <object class="sizeritem">
           <flag>wxGROW|wxALL</flag>
           <border>5</border>
-          <object class="wxTextCtrl" name="ID_OUTPUT_TEX">
+          <object class="wxTextCtrl" name="ID_OUTPUT_TEXT">
             <style>wxTE_MULTILINE</style>
           </object>
         </object>

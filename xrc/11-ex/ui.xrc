@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resource version="2.3.0.1" xmlns="http://www.wxwidgets.org/wxxrc">
+
   <!-- Wizard principal -->
   <object class="wxWizard" name="ID_WXWIZARD">
     <title>Assistente de Configuração</title>
@@ -7,10 +8,13 @@
     <style>wxDEFAULT_DIALOG_STYLE</style>
   </object>
 
-  <!-- Primeira página do wizard -->
-  <object class="wxWizardPageSimple" name="PAGE_1" parent="ID_WXWIZARD">
+  <!-- =========================
+       PAGE_1 como wxPanel
+       ========================= -->
+  <object class="wxPanel" name="PAGE_1">
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
+
       <object class="sizeritem">
         <flag>wxALL|wxEXPAND</flag>
         <border>20</border>
@@ -22,6 +26,7 @@
           </font>
         </object>
       </object>
+
       <object class="sizeritem">
         <flag>wxALL|wxEXPAND</flag>
         <border>20</border>
@@ -29,6 +34,7 @@
           <label>Este assistente irá guiá-lo através do processo de configuração inicial do sistema.</label>
         </object>
       </object>
+
       <object class="sizeritem">
         <flag>wxALL|wxEXPAND</flag>
         <border>20</border>
@@ -36,6 +42,7 @@
           <label>Eu aceito os termos e condições</label>
         </object>
       </object>
+
       <object class="spacer">
         <option>1</option>
         <flag>wxEXPAND</flag>
@@ -43,10 +50,13 @@
     </object>
   </object>
 
-  <!-- Segunda página do wizard -->
-  <object class="wxWizardPageSimple" name="PAGE_2" parent="ID_WXWIZARD">
+  <!-- =========================
+       PAGE_2 como wxPanel
+       ========================= -->
+  <object class="wxPanel" name="PAGE_2">
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
+
       <object class="sizeritem">
         <flag>wxALL|wxEXPAND</flag>
         <border>20</border>
@@ -58,31 +68,37 @@
           </font>
         </object>
       </object>
+
       <object class="sizeritem">
         <flag>wxALL|wxEXPAND</flag>
         <border>10</border>
+
         <object class="wxFlexGridSizer">
           <cols>2</cols>
           <vgap>10</vgap>
           <hgap>10</hgap>
+
           <object class="sizeritem">
             <flag>wxALIGN_CENTER_VERTICAL</flag>
             <object class="wxStaticText">
               <label>Nome de usuário:</label>
             </object>
           </object>
+
           <object class="sizeritem">
             <flag>wxEXPAND</flag>
             <object class="wxTextCtrl" name="TEXT_USERNAME">
               <size>200,-1</size>
             </object>
           </object>
+
           <object class="sizeritem">
             <flag>wxALIGN_CENTER_VERTICAL</flag>
             <object class="wxStaticText">
               <label>Email:</label>
             </object>
           </object>
+
           <object class="sizeritem">
             <flag>wxEXPAND</flag>
             <object class="wxTextCtrl" name="TEXT_EMAIL">
@@ -91,6 +107,7 @@
           </object>
         </object>
       </object>
+
       <object class="spacer">
         <option>1</option>
         <flag>wxEXPAND</flag>
@@ -98,10 +115,13 @@
     </object>
   </object>
 
-  <!-- Terceira página (final) -->
-  <object class="wxWizardPageSimple" name="PAGE_3" parent="ID_WXWIZARD">
+  <!-- =========================
+       PAGE_3 como wxPanel
+       ========================= -->
+  <object class="wxPanel" name="PAGE_3">
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
+
       <object class="sizeritem">
         <flag>wxALL|wxEXPAND</flag>
         <border>20</border>
@@ -113,6 +133,7 @@
           </font>
         </object>
       </object>
+
       <object class="sizeritem">
         <flag>wxALL|wxEXPAND</flag>
         <border>20</border>
@@ -120,6 +141,7 @@
           <label>Parabéns! Sua configuração foi concluída com sucesso.</label>
         </object>
       </object>
+
       <object class="sizeritem">
         <flag>wxALL|wxEXPAND</flag>
         <border>20</border>
@@ -127,10 +149,13 @@
           <label>Resumo da configuração aparecerá aqui.</label>
         </object>
       </object>
+
       <object class="spacer">
         <option>1</option>
         <flag>wxEXPAND</flag>
       </object>
     </object>
   </object>
+
 </resource>
+

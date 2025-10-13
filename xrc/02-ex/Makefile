@@ -21,18 +21,10 @@ OBJS        := $(SOURCES:.cpp=.o)
 DEPS        := $(OBJS:.o=.d)
 
 # =========================
-# Configuração do wxWidgets
+# wxWidgets (SISTEMA)
 # =========================
-V              ?= 3.2.4
-OS             ?= linux
-WX_BASE_DIR    ?= $(HOME)/wx
-WX_SRC_DIR     ?= $(WX_BASE_DIR)/wxWidgets-$(V)-$(OS)
-WX_INSTALL_DIR ?= $(WX_BASE_DIR)/$(OS)-wx-$(V)
-WX_LIB_PATH    ?= $(WX_INSTALL_DIR)/lib
-
-# wx-config e wxrc (permitem override pelo ambiente)
-WX_CONFIG      ?= $(WX_INSTALL_DIR)/bin/wx-config
-WXRC           ?= $(WX_INSTALL_DIR)/bin/wxrc
+WX_CONFIG   ?= wx-config
+WXRC        ?= wxrc
 
 # Opções do wx-config
 WX_TOOLKIT     ?= gtk3
@@ -45,17 +37,12 @@ WX_CONFIG_OPT  := --unicode=$(WX_UNICODE) --static=$(WX_STATIC) --toolkit=$(WX_T
 # Toolchain e flags
 # =========================
 CXX            ?= $(shell $(WX_CONFIG) --cxx)
-
-# <<< força padrão C++17 (troque para gnu++17 se preferir extensões GNU)
 CXXSTD         ?= -std=c++17
-
 OPTIMIZE       ?= -O3
-DEBUG          ?= 0        # use DEBUG=1 para build de debug
-RPATH          ?= 1        # use RPATH=0 para desabilitar rpath
+DEBUG          ?= 0
 
 # Flags vindas do wx-config
 WX_CXXFLAGS    := $(shell $(WX_CONFIG) --cxxflags $(WX_CONFIG_OPT))
-# Inclua std,xrc para garantir o módulo XRC
 WX_LDLIBS      := $(shell $(WX_CONFIG) $(WX_CONFIG_OPT) --libs std,xrc)
 
 # Dependências automáticas
@@ -68,16 +55,8 @@ else
   CXXFLAGS    ?= $(OPTIMIZE)
 endif
 
-# rpath opcional para libs locais do wx
-ifeq ($(RPATH),1)
-  # <<< garante RPATH "clássico" (sem new-dtags) e permite resolver libs no próprio dir do binário
-  LDFLAGS     ?= -Wl,-rpath,$(WX_LIB_PATH) -Wl,-rpath,'$$ORIGIN' -Wl,--disable-new-dtags
-else
-  LDFLAGS     ?=
-endif
-
 # Compose final
-CXXFLAGS      += $(CXXSTD) $(WX_CXXFLAGS) $(DEPFLAGS) $(WARNINGS)   # <<< inclui -std=c++17
+CXXFLAGS      += $(CXXSTD) $(WX_CXXFLAGS) $(DEPFLAGS) $(WARNINGS)
 LDLIBS        += $(WX_LDLIBS)
 LINK.o         = $(CXX) $(LDFLAGS)
 
@@ -102,9 +81,8 @@ embed:
 	@echo "Use EMBED_XRC=1 para embutir o XRC (ex.: make EMBED_XRC=1)"
 endif
 
-# <<< run injeta LD_LIBRARY_PATH para priorizar suas libs locais
 run: $(PROGRAM)
-	LD_LIBRARY_PATH="$(WX_LIB_PATH):$$LD_LIBRARY_PATH" ./$(PROGRAM)
+	./$(PROGRAM)
 
 ldd: $(PROGRAM)
 	ldd $^ | grep wx || true
@@ -119,8 +97,8 @@ clean:
 -include $(DEPS)
 
 help:
-	@echo "Alvos úteis:"
-	@echo "  make               -> compila com XRC externo (carrega ui.xrc em runtime)"
-	@echo "  make EMBED_XRC=1   -> embute o XRC (gera ui_xrc.cpp com wxrc -c)"
-	@echo "  make run           -> executa com LD_LIBRARY_PATH ajustado"
+	@echo "Makefile para wx do SISTEMA (PATH)"
+	@echo "  make               -> compila"
+	@echo "  make EMBED_XRC=1   -> embute XRC (gera ui_xrc.cpp com wxrc -c)"
+	@echo "  make run           -> executa"
 	@echo "  make clean         -> limpa artefatos"

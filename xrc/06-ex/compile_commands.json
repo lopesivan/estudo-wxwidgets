@@ -1,0 +1,22 @@
+[
+  {
+    "arguments": [
+      "/bin/g++",
+      "-O3",
+      "-std=c++17",
+      "-I/usr/lib/x86_64-linux-gnu/wx/include/gtk3-unicode-3.2",
+      "-I/usr/include/wx-3.2",
+      "-D_FILE_OFFSET_BITS=64",
+      "-DWXUSINGDLL",
+      "-D__WXGTK__",
+      "-pthread",
+      "-c",
+      "-o",
+      "main.o",
+      "main.cpp"
+    ],
+    "directory": "/workspace/estudo-wxwidgets/xrc/06-ex",
+    "file": "/workspace/estudo-wxwidgets/xrc/06-ex/main.cpp",
+    "output": "/workspace/estudo-wxwidgets/xrc/06-ex/main.o"
+  }
+]

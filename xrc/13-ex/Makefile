@@ -83,6 +83,29 @@ LINK.o         = $(CXX) $(LDFLAGS)
 
 all: $(PROGRAM)
 
+wizard.png:
+	convert -size 115x280 \
+        gradient:midnightblue-dodgerblue \
+        -fill gold \
+        -stroke black \
+        -strokewidth 1 \
+        -draw "ellipse 57,100 25,35 0,360" \
+        -fill white \
+        -pointsize 16 \
+        -font Arial \
+        -gravity north \
+        -annotate +0+30 "Wizard" \
+        -pointsize 10 \
+        -annotate +0+60 "Click to Start" \
+        -fill silver \
+        -draw "rectangle 25,180 90,200" \
+        -fill forestgreen \
+        -draw "rectangle 25,210 90,230" \
+        -strip \
+        -depth 8 \
+        -interlace none \
+        wizard.png
+
 $(PROGRAM): $(OBJS)
 	$(LINK.o) $^ $(LDLIBS) -o $@
 
@@ -108,7 +131,7 @@ readelf: $(PROGRAM)
 	readelf -d $^ | grep -E "(RPATH|RUNPATH)" || true
 
 clean:
-	/bin/rm -rf $(PROGRAM) $(OBJS) $(DEPS) $(XRC_CPP)
+	/bin/rm -rf $(PROGRAM) $(OBJS) $(DEPS) $(XRC_CPP) wizard.png
 
 # Dependências automáticas
 -include $(DEPS)

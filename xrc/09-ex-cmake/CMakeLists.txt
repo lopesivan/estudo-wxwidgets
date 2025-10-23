@@ -223,10 +223,12 @@ else()
 endif()
 
 # ==============================================================================
-# CÓPIA DO ARQUIVO XRC (SE NÃO EMBUTIDO)
+# CÓPIA DO ARQUIVO XRC PARA O DIRETÓRIO DO EXECUTÁVEL
 # ==============================================================================
 
-if(NOT EMBED_XRC AND EXISTS "${XRC_FILE}")
+# Sempre copia o XRC para o diretório do executável (mesmo se embutido) Isso
+# replica o comportamento do Makefile: cp src/ui.xrc .
+if(EXISTS "${XRC_FILE}")
   add_custom_command(
     TARGET ${PROGRAM_NAME}
     POST_BUILD

@@ -1,0 +1,15 @@
+cmake -S . -B build
+cmake --build build
+
+# build padrão (linka xrc; tenta embutir se achar wxrc e src/*.xrc)
+cmake -S . -B build
+cmake --build build -j
+
+# forçar sem embed (carrega do disco)
+cmake -S . -B build -DEMBED_XRC=OFF
+cmake --build build -j
+
+# forçar embed (falha se não houver wxrc ou .xrc)
+cmake -S . -B build -DEMBED_XRC=ON
+cmake --build build -j
+

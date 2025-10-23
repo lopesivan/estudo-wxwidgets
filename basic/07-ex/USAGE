@@ -1,0 +1,7 @@
+
+RPATH=1 make
+
+DEBUG=1 make
+
+RPATH=1 DEBUG=1 make
+

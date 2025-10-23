@@ -1,204 +1,302 @@
+# ==============================================================================
+# CONFIGURAÇÃO BÁSICA DO PROJETO
+# ==============================================================================
 cmake_minimum_required(VERSION 3.16)
-project(HelloWx_ExistingInstall LANGUAGES CXX)
+project(wxWidgets_XRC_App LANGUAGES CXX)
 
+# Padrões do C++
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Opções de build para debug
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# =========================================
-# Opções
-# =========================================
-# XRC_LINK: linkar a lib xrc (necessário quando usa wxXmlResource) XRC_EMBED:
-# embutir .xrc com wxrc (gera resource.cpp)
-option(XRC_LINK "Linkar wxXRC (necessário se usa wxXmlResource)" ON)
-set(XRC_EMBED
-    "AUTO"
-    CACHE STRING "Embutir .xrc com wxrc (ON/OFF/AUTO)")
-set_property(CACHE XRC_EMBED PROPERTY STRINGS ON OFF AUTO)
+# ==============================================================================
+# OPÇÕES CONFIGURÁVEIS DO USUÁRIO
+# ==============================================================================
 
-# Seus .xrc estão em src/
-set(XRC_DIR
-    "${CMAKE_CURRENT_SOURCE_DIR}/src"
-    CACHE PATH "Directory with .xrc files")
-file(GLOB XRC_FILES CONFIGURE_DEPENDS "${XRC_DIR}/*.xrc")
+# Nome do executável
+set(PROGRAM_NAME
+    "app"
+    CACHE STRING "Nome do executável")
 
-# =========================================
-# Raiz do wx por SO (pode sobrescrever com -DWX_ROOT=...)
-# =========================================
-if(NOT DEFINED WX_ROOT)
-  if(WIN32)
-    set(WX_ROOT "C:/wxwidgets-3.2.4")
-  else()
-    set(WX_ROOT "$ENV{HOME}/wx/linux-wxwidgets-3.2.4")
-  endif()
-endif()
-message(STATUS "Tentando usar wxWidgets em: ${WX_ROOT}")
+# Modo de embed do XRC
+option(EMBED_XRC "Embutir arquivo XRC no executável" OFF)
 
-# =========================================
-# Tenta CONFIG primeiro
-# =========================================
-if(NOT DEFINED wxWidgets_DIR)
-  set(_guess_cfg "${WX_ROOT}/lib/cmake/wxWidgets")
-  if(EXISTS "${_guess_cfg}/wxWidgetsConfig.cmake")
-    set(wxWidgets_DIR
-        "${_guess_cfg}"
-        CACHE PATH "wxWidgets CMake config dir" FORCE)
-  endif()
-endif()
-list(APPEND CMAKE_PREFIX_PATH "${WX_ROOT}")
+# Arquivo XRC de entrada
+set(XRC_FILE
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/ui.xrc"
+    CACHE FILEPATH "Arquivo XRC")
 
-# Sempre peça base/core; se XRC_LINK estiver ON, peça xrc também
-set(_WX_COMPONENTS base core)
-if(XRC_LINK)
-  list(APPEND _WX_COMPONENTS xrc)
+# Modo Debug
+option(DEBUG_BUILD "Build em modo debug" OFF)
+
+# Usar RPATH para garantir uso das libs locais
+option(USE_RPATH "Usar RPATH para libs locais" ON)
+
+# ==============================================================================
+# DETECÇÃO DO WXWIDGETS LOCAL
+# ==============================================================================
+
+# Versão e configurações do wxWidgets
+set(WX_VERSION
+    "3.2.4"
+    CACHE STRING "Versão do wxWidgets")
+set(WX_OS
+    "linux"
+    CACHE STRING "Sistema operacional (linux/windows)")
+
+# Diretório base do wxWidgets
+if(NOT DEFINED WX_BASE_DIR)
+  set(WX_BASE_DIR "$ENV{HOME}/wx")
 endif()
 
-set(_WX_FOUND_CONFIG FALSE)
-find_package(wxWidgets QUIET CONFIG COMPONENTS ${_WX_COMPONENTS})
-if(wxWidgets_FOUND)
-  set(_WX_FOUND_CONFIG TRUE)
-  message(STATUS "wxWidgets encontrado via CONFIG em: ${wxWidgets_DIR}")
-else()
+# Diretório de instalação do wxWidgets
+set(WX_INSTALL_DIR
+    "${WX_BASE_DIR}/${WX_OS}-wx-${WX_VERSION}"
+    CACHE PATH "Diretório de instalação do wxWidgets")
+
+# Caminhos importantes
+set(WX_LIB_PATH "${WX_INSTALL_DIR}/lib")
+set(WX_CONFIG "${WX_INSTALL_DIR}/bin/wx-config")
+set(WXRC "${WX_INSTALL_DIR}/bin/wxrc")
+
+message(STATUS "========================================")
+message(STATUS "Configuração do wxWidgets:")
+message(STATUS "========================================")
+message(STATUS "WX_INSTALL_DIR = ${WX_INSTALL_DIR}")
+message(STATUS "WX_CONFIG = ${WX_CONFIG}")
+message(STATUS "WXRC = ${WXRC}")
+
+# ==============================================================================
+# VERIFICAÇÃO DO WX-CONFIG
+# ==============================================================================
+
+if(NOT EXISTS "${WX_CONFIG}")
+  message(FATAL_ERROR "wx-config não encontrado em: ${WX_CONFIG}")
+endif()
+
+if(NOT EXISTS "${WX_LIB_PATH}")
   message(
-    STATUS "wxWidgets (CONFIG) não encontrado, tentando módulo FindwxWidgets..."
-  )
+    FATAL_ERROR "Diretório de libs do wxWidgets não encontrado: ${WX_LIB_PATH}")
 endif()
 
-# =========================================
-# Fallback: módulo FindwxWidgets (wx-config)
-# =========================================
-if(NOT _WX_FOUND_CONFIG)
-  if(NOT DEFINED WX_CONFIG_EXECUTABLE)
-    if(EXISTS "${WX_ROOT}/bin/wx-config")
-      set(WX_CONFIG_EXECUTABLE "${WX_ROOT}/bin/wx-config")
-    elseif(EXISTS "${WX_ROOT}/lib/wx/config/gtk3-unicode-3.2")
-      set(WX_CONFIG_EXECUTABLE "${WX_ROOT}/lib/wx/config/gtk3-unicode-3.2")
-    endif()
-  endif()
+# ==============================================================================
+# OBTENÇÃO DAS FLAGS DO WXWIDGETS VIA WX-CONFIG
+# ==============================================================================
 
-  if(DEFINED WX_CONFIG_EXECUTABLE)
-    set(ENV{WX_CONFIG} "${WX_CONFIG_EXECUTABLE}")
-    set(wxWidgets_CONFIG_EXECUTABLE
-        "${WX_CONFIG_EXECUTABLE}"
-        CACHE FILEPATH "wx-config path" FORCE)
-    message(STATUS "Usando wx-config explícito: ${WX_CONFIG_EXECUTABLE}")
-  endif()
+# Opções do wx-config
+set(WX_CONFIG_OPTS "--unicode=yes --static=no --toolkit=gtk3 --version=3.2")
 
-  find_package(wxWidgets REQUIRED COMPONENTS ${_WX_COMPONENTS})
-  message(
-    STATUS
-      "wxWidgets encontrado via módulo FindwxWidgets. Versão: ${wxWidgets_VERSION}"
-  )
+# Obter CXXFLAGS do wx-config
+execute_process(
+  COMMAND ${WX_CONFIG} --cxxflags ${WX_CONFIG_OPTS}
+  OUTPUT_VARIABLE WX_CXXFLAGS
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  RESULT_VARIABLE WX_CONFIG_RESULT)
+
+if(NOT WX_CONFIG_RESULT EQUAL 0)
+  message(FATAL_ERROR "Falha ao executar wx-config --cxxflags")
 endif()
 
-# =========================================
-# Descobrir wxrc (apenas se for EMBED)
-# =========================================
-set(WXRC_PROGRAM "")
-if(TARGET wxrc)
-  set(WXRC_PROGRAM "$<TARGET_FILE:wxrc>")
-else()
-  find_program(
-    WXRC_PROGRAM
-    NAMES wxrc
-    HINTS "${WX_ROOT}/bin")
+# Obter LDFLAGS (libs) do wx-config
+execute_process(
+  COMMAND ${WX_CONFIG} ${WX_CONFIG_OPTS} --libs std,xrc
+  OUTPUT_VARIABLE WX_LDLIBS
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  RESULT_VARIABLE WX_LIBS_RESULT)
+
+if(NOT WX_LIBS_RESULT EQUAL 0)
+  message(FATAL_ERROR "Falha ao executar wx-config --libs")
 endif()
 
-# Decisão de EMBED
-set(_DO_EMBED FALSE)
-if(XRC_EMBED STREQUAL "ON")
-  if(XRC_FILES AND WXRC_PROGRAM)
-    set(_DO_EMBED TRUE)
-  else()
+message(STATUS "WX_CXXFLAGS = ${WX_CXXFLAGS}")
+message(STATUS "WX_LDLIBS = ${WX_LDLIBS}")
+
+# ==============================================================================
+# COLETA DOS ARQUIVOS FONTE
+# ==============================================================================
+
+# Detecta todos os .cpp em src/
+file(GLOB BASE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+
+# Remove ui_xrc.cpp da lista (será adicionado condicionalmente)
+set(XRC_CPP "${CMAKE_CURRENT_SOURCE_DIR}/src/ui_xrc.cpp")
+list(FILTER BASE_SOURCES EXCLUDE REGEX ".*ui_xrc\\.cpp$")
+
+# Lista final de fontes
+set(SOURCES ${BASE_SOURCES})
+
+# ==============================================================================
+# PROCESSAMENTO DO XRC (EMBED OU CÓPIA)
+# ==============================================================================
+
+if(EMBED_XRC)
+  # Modo EMBED: Gera ui_xrc.cpp com wxrc
+  if(NOT EXISTS "${WXRC}")
     message(
-      WARNING "XRC_EMBED=ON mas não há .xrc ou wxrc; EMBED será ignorado.")
+      FATAL_ERROR
+        "wxrc não encontrado em: ${WXRC}. Necessário para EMBED_XRC=ON")
   endif()
-elseif(XRC_EMBED STREQUAL "AUTO")
-  if(XRC_FILES AND WXRC_PROGRAM)
-    set(_DO_EMBED TRUE)
-    message(
-      STATUS "XRC_EMBED=AUTO → EMBED ativado (arquivos e wxrc encontrados).")
-  else()
-    message(STATUS "XRC_EMBED=AUTO → EMBED não ativado.")
+
+  if(NOT EXISTS "${XRC_FILE}")
+    message(FATAL_ERROR "Arquivo XRC não encontrado: ${XRC_FILE}")
   endif()
-else()
-  message(
-    STATUS "XRC_EMBED=OFF → sem embed; você deve carregar o .xrc do disco.")
-endif()
 
-# =========================================
-# Alvo da aplicação
-# =========================================
-add_executable(hello_app src/main.cpp src/main_frame.cpp src/main_frame.h)
+  message(STATUS "EMBED_XRC = ON → Gerando ${XRC_CPP} com wxrc")
 
-# EMBED (gera resource.cpp) — opcional
-if(_DO_EMBED)
-  set(RESOURCE_CPP "${CMAKE_CURRENT_BINARY_DIR}/xrc_resource.cpp")
   add_custom_command(
-    OUTPUT "${RESOURCE_CPP}"
-    COMMAND "${WXRC_PROGRAM}" -c -o "${RESOURCE_CPP}" ${XRC_FILES}
-    DEPENDS ${XRC_FILES}
-    COMMENT "Compilando XRC (wxrc) → ${RESOURCE_CPP}"
+    OUTPUT "${XRC_CPP}"
+    COMMAND "${WXRC}" "${XRC_FILE}" -c -o "${XRC_CPP}"
+    DEPENDS "${XRC_FILE}"
+    COMMENT "Compilando XRC → ${XRC_CPP}"
     VERBATIM)
-  target_sources(hello_app PRIVATE "${RESOURCE_CPP}")
+
+  # Adiciona o arquivo gerado às fontes
+  list(APPEND SOURCES "${XRC_CPP}")
+
 else()
-  # Se não embutir, garanta que o .xrc estará ao lado do binário (cópia simples)
-  if(XRC_FILES)
-    add_custom_command(
-      TARGET hello_app
-      POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${XRC_FILES}
-              $<TARGET_FILE_DIR:hello_app>
-      COMMENT "Copiando .xrc para a pasta do executável")
-  endif()
+  # Modo SEM EMBED: Copia ui.xrc para o diretório do executável
+  message(
+    STATUS "EMBED_XRC = OFF → ui.xrc será copiado para pasta do executável")
 endif()
 
-# Link com wx — em CONFIG usamos targets modernos; no módulo, variáveis do find
-if(_WX_FOUND_CONFIG)
-  target_link_libraries(hello_app PRIVATE wx::base wx::core)
-  if(XRC_LINK)
-    target_link_libraries(hello_app PRIVATE wx::xrc)
-  endif()
+# ==============================================================================
+# CRIAÇÃO DO EXECUTÁVEL
+# ==============================================================================
+
+add_executable(${PROGRAM_NAME} ${SOURCES})
+
+# ==============================================================================
+# CONFIGURAÇÃO DE COMPILAÇÃO
+# ==============================================================================
+
+# Separar as flags do wx-config em componentes individuais
+separate_arguments(WX_CXXFLAGS_LIST UNIX_COMMAND "${WX_CXXFLAGS}")
+target_compile_options(${PROGRAM_NAME} PRIVATE ${WX_CXXFLAGS_LIST})
+
+# Modo Debug ou Release
+if(DEBUG_BUILD)
+  target_compile_options(${PROGRAM_NAME} PRIVATE -O0 -g)
 else()
-  if(wxWidgets_USE_FILE)
-    include(${wxWidgets_USE_FILE})
-  endif()
-  target_link_libraries(hello_app PRIVATE ${wxWidgets_LIBRARIES})
-  target_include_directories(hello_app PRIVATE ${wxWidgets_INCLUDE_DIRS})
-  if(wxWidgets_DEFINITIONS)
-    target_compile_definitions(hello_app PRIVATE ${wxWidgets_DEFINITIONS})
-  endif()
-  if(wxWidgets_CXX_FLAGS)
-    target_compile_options(hello_app PRIVATE ${wxWidgets_CXX_FLAGS})
-  endif()
+  target_compile_options(${PROGRAM_NAME} PRIVATE -O3)
 endif()
 
-# Warnings/props
-if(MSVC)
-  target_compile_options(hello_app PRIVATE /W4 /permissive-)
+# ==============================================================================
+# CONFIGURAÇÃO DE LINKAGEM
+# ==============================================================================
+
+# Separar as flags de link do wx-config
+separate_arguments(WX_LDLIBS_LIST UNIX_COMMAND "${WX_LDLIBS}")
+
+# Adicionar o diretório de libs
+target_link_directories(${PROGRAM_NAME} PRIVATE "${WX_LIB_PATH}")
+
+# Adicionar as bibliotecas
+target_link_libraries(${PROGRAM_NAME} PRIVATE ${WX_LDLIBS_LIST})
+
+# ==============================================================================
+# CONFIGURAÇÃO DO RPATH
+# ==============================================================================
+
+if(USE_RPATH
+   AND UNIX
+   AND NOT APPLE)
+  # RPATH "clássico" para garantir uso das libs locais em runtime Equivalente a:
+  # -Wl,-rpath,$(WX_LIB_PATH) -Wl,-rpath,'$ORIGIN' -Wl,--disable-new-dtags
+  set_target_properties(
+    ${PROGRAM_NAME}
+    PROPERTIES BUILD_RPATH "${WX_LIB_PATH}"
+               INSTALL_RPATH "${WX_LIB_PATH};\$ORIGIN"
+               BUILD_RPATH_USE_ORIGIN TRUE
+               SKIP_BUILD_RPATH FALSE
+               BUILD_WITH_INSTALL_RPATH FALSE
+               INSTALL_RPATH_USE_LINK_PATH FALSE)
+
+  # Força RPATH em vez de RUNPATH (--disable-new-dtags)
+  target_link_options(${PROGRAM_NAME} PRIVATE "LINKER:--disable-new-dtags")
+
+  message(STATUS "USE_RPATH = ON → RPATH configurado para ${WX_LIB_PATH}")
 else()
-  target_compile_options(hello_app PRIVATE -Wall -Wextra -Wpedantic)
+  message(STATUS "USE_RPATH = OFF")
 endif()
 
-if(WIN32)
-  set_target_properties(hello_app PROPERTIES WIN32_EXECUTABLE YES)
+# ==============================================================================
+# CÓPIA DO ARQUIVO XRC (SE NÃO EMBUTIDO)
+# ==============================================================================
+
+if(NOT EMBED_XRC AND EXISTS "${XRC_FILE}")
+  add_custom_command(
+    TARGET ${PROGRAM_NAME}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${XRC_FILE}"
+            $<TARGET_FILE_DIR:${PROGRAM_NAME}>
+    COMMENT "Copiando ${XRC_FILE} para pasta do executável")
 endif()
 
-# Diagnóstico
-message(STATUS "WX_ROOT='${WX_ROOT}'")
-if(DEFINED wxWidgets_DIR)
-  message(STATUS "wxWidgets_DIR='${wxWidgets_DIR}'")
-endif()
-if(DEFINED WX_CONFIG_EXECUTABLE)
-  message(STATUS "WX_CONFIG_EXECUTABLE='${WX_CONFIG_EXECUTABLE}'")
-endif()
-message(
-  STATUS
-    "XRC_LINK=${XRC_LINK}  |  XRC_EMBED='${XRC_EMBED}'  → EMBED=${_DO_EMBED}")
-message(STATUS "WXRC_PROGRAM='${WXRC_PROGRAM}'")
-if(XRC_FILES)
-  message(STATUS "XRC_FILES: ${XRC_FILES}")
+# ==============================================================================
+# ALVOS PERSONALIZADOS (EQUIVALENTES AOS DO MAKEFILE)
+# ==============================================================================
+
+# Alvo 'run': Executa o programa com LD_LIBRARY_PATH ajustado
+add_custom_target(
+  run
+  COMMAND
+    ${CMAKE_COMMAND} -E env
+    "LD_LIBRARY_PATH=${WX_LIB_PATH}:$ENV{LD_LIBRARY_PATH}"
+    $<TARGET_FILE:${PROGRAM_NAME}>
+  DEPENDS ${PROGRAM_NAME}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMENT "Executando ${PROGRAM_NAME} com LD_LIBRARY_PATH ajustado"
+  VERBATIM)
+
+# Alvo 'ldd': Mostra as dependências dinâmicas
+add_custom_target(
+  ldd
+  COMMAND ldd $<TARGET_FILE:${PROGRAM_NAME}> | grep wx || true
+  DEPENDS ${PROGRAM_NAME}
+  COMMENT "Verificando dependências dinâmicas (ldd)"
+  VERBATIM)
+
+# Alvo 'readelf': Verifica RPATH/RUNPATH
+add_custom_target(
+  readelf
+  COMMAND readelf -d $<TARGET_FILE:${PROGRAM_NAME}> | grep -E "(RPATH|RUNPATH)"
+          || true
+  DEPENDS ${PROGRAM_NAME}
+  COMMENT "Verificando RPATH/RUNPATH (readelf)"
+  VERBATIM)
+
+# ==============================================================================
+# MENSAGENS DE DIAGNÓSTICO FINAL
+# ==============================================================================
+
+message(STATUS "========================================")
+message(STATUS "Configuração do Build:")
+message(STATUS "========================================")
+message(STATUS "PROGRAM_NAME = ${PROGRAM_NAME}")
+message(STATUS "EMBED_XRC = ${EMBED_XRC}")
+message(STATUS "DEBUG_BUILD = ${DEBUG_BUILD}")
+message(STATUS "USE_RPATH = ${USE_RPATH}")
+message(STATUS "XRC_FILE = ${XRC_FILE}")
+
+if(EMBED_XRC)
+  message(STATUS "XRC_CPP = ${XRC_CPP} (será gerado)")
 else()
-  message(STATUS "XRC_FILES: (nenhum .xrc encontrado em ${XRC_DIR})")
+  message(STATUS "XRC será copiado para pasta do executável")
 endif()
+
+message(STATUS "")
+message(STATUS "Fontes do projeto:")
+foreach(src ${SOURCES})
+  message(STATUS "  - ${src}")
+endforeach()
+
+message(STATUS "")
+message(STATUS "Alvos disponíveis:")
+message(STATUS "  make           - Compila o projeto")
+message(STATUS "  make run       - Executa com LD_LIBRARY_PATH ajustado")
+message(STATUS "  make ldd       - Mostra dependências dinâmicas")
+message(STATUS "  make readelf   - Verifica RPATH/RUNPATH")
+message(STATUS "========================================")

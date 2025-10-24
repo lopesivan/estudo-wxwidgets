@@ -1,131 +1,121 @@
 # =========================
-# Configuração do projeto
+# Fonte e alvo
 # =========================
-PROGRAM       ?= app
-SRC_DIR       ?= .
-BUILD_DIR     ?= build
-BIN_DIR       ?= bin
+PROGRAM     ?= app
 
-# Descobre todos os .cpp no diretório de código
-SRCS          := $(wildcard $(SRC_DIR)/*.cpp)
-OBJS          := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
-DEPS          := $(OBJS:.o=.d)
+# Se EMBED_XRC=1, ui_xrc.cpp é gerado e entra no build
+EMBED_XRC   ?= 0
+XRC_FILE    ?= resources.xrc
+XRC_CPP     ?= resources.cpp
+
+# Detecta fontes .cpp (e soma ui_xrc.cpp se EMBED_XRC=1)
+BASE_SOURCES := $(wildcard *.cpp)
+ifeq ($(EMBED_XRC),1)
+  BASE_SOURCES := $(filter-out $(XRC_CPP), $(BASE_SOURCES))
+  SOURCES      := $(BASE_SOURCES) $(XRC_CPP)
+else
+  SOURCES      := $(BASE_SOURCES)
+endif
+
+OBJS        := $(SOURCES:.cpp=.o)
+DEPS        := $(OBJS:.o=.d)
 
 # =========================
-# Configuração do wxWidgets
+# wxWidgets (LOCAL)
 # =========================
-V             ?= 3.2.4
-WX_BASE_DIR   ?= $(HOME)/wx
-WX_SRC_DIR    ?= $(WX_BASE_DIR)/wxWidgets-$(V)-linux
-WX_INSTALL_DIR?= $(WX_BASE_DIR)/linux-wx-$(V)
-WX_LIB_PATH   ?= $(WX_INSTALL_DIR)/lib
+# Ajuste estes paths para o seu build local:
+V              ?= 3.2.4
+OS             ?= linux
+WX_BASE_DIR    ?= $(HOME)/wx
+WX_INSTALL_DIR ?= $(WX_BASE_DIR)/$(OS)-wx-$(V)
+WX_LIB_PATH    ?= $(WX_INSTALL_DIR)/lib
 
-# Permita sobrescrever WX_CONFIG via ambiente, senão use o padrão
-WX_CONFIG     ?= $(WX_INSTALL_DIR)/bin/wx-config
+WX_CONFIG      ?= $(WX_INSTALL_DIR)/bin/wx-config
+WXRC           ?= $(WX_INSTALL_DIR)/bin/wxrc
 
-# Opções do wx-config (ajuste toolkit/unicode/static se necessário)
-WX_TOOLKIT    ?= gtk3
-WX_UNICODE    ?= yes
-WX_STATIC     ?= no
-WX_VERSION    ?= 3.2
-WX_CONFIG_OPT := --unicode=$(WX_UNICODE) --static=$(WX_STATIC) --toolkit=$(WX_TOOLKIT) --version=$(WX_VERSION)
+# Opções do wx-config
+WX_TOOLKIT     ?= gtk3
+WX_UNICODE     ?= yes
+WX_STATIC      ?= no
+WX_VERSION     ?= 3.2
+WX_CONFIG_OPT  := --unicode=$(WX_UNICODE) --static=$(WX_STATIC) --toolkit=$(WX_TOOLKIT) --version=$(WX_VERSION)
 
 # =========================
 # Toolchain e flags
 # =========================
 CXX            ?= $(shell $(WX_CONFIG) --cxx)
 CXXSTD         ?= -std=c++17
-WARNINGS       ?= -Wall -Wextra -Wpedantic
 OPTIMIZE       ?= -O3
-DEBUG          ?= 0        # use DEBUG=1 para build de debug
+DEBUG          ?= 0
 RPATH          ?= 1        # use RPATH=0 para desabilitar rpath
 
 # Flags vindas do wx-config
-WX_CXXFLAGS   := $(shell $(WX_CONFIG) --cxxflags $(WX_CONFIG_OPT))
-WX_LDLIBS     := $(shell $(WX_CONFIG) $(WX_CONFIG_OPT) --libs core,base)
+WX_CXXFLAGS    := $(shell $(WX_CONFIG) --cxxflags $(WX_CONFIG_OPT))
+WX_LDLIBS      := $(shell $(WX_CONFIG) $(WX_CONFIG_OPT) --libs std,xrc)
 
-PKG_CONFIG_PATH:=/usr/lib/x86_64-linux-gnu/pkgconfig
-export PKG_CONFIG_PATH
-
-ALLEGRO_LIBS_WITHOUT_VERSION = \
-		allegro \
-		allegro_font \
-		allegro_ttf \
-		allegro_main \
-		allegro_primitives
-
-ALLEGRO_LIBS_VERSION = $(addsuffix -5,$(ALLEGRO_LIBS_WITHOUT_VERSION))
-#ALLEGRO_LIBS_VERSION = $(patsubst %,%-5,$(ALLEGRO_LIBS_WITHOUT_VERSION))
-
-ALLEGRO_LIBS   = $(ALLEGRO_LIBS_VERSION)
-ALLEGRO_CFLAGS = $(shell /usr/bin/pkg-config --cflags $(ALLEGRO_LIBS))
-ALLEGRO_LDLIBS = $(shell /usr/bin/pkg-config --libs $(ALLEGRO_LIBS))
-
-# Flags de dep (-MMD -MP) para gerar .d e recompilar só o necessário
-DEPFLAGS      := -MMD -MP
+# Dependências automáticas
+DEPFLAGS       := -MMD -MP
 
 # Ajuste de flags por modo
 ifeq ($(DEBUG),1)
   CXXFLAGS    ?= -O0 -g
-  CPPFLAGS    ?=
 else
   CXXFLAGS    ?= $(OPTIMIZE)
-  CPPFLAGS    ?=
 endif
 
-# rpath opcional apontando para as libs do wx instaladas localmente
+# rpath para garantir uso das libs locais em runtime
 ifeq ($(RPATH),1)
-  LDFLAGS     ?= -Wl,-rpath,$(WX_LIB_PATH)
+  # RPATH "clássico" + ORIGIN; evita RUNPATH (new-dtags)
+  LDFLAGS     ?= -Wl,-rpath,$(WX_LIB_PATH) -Wl,-rpath,'$$ORIGIN' -Wl,--disable-new-dtags
 else
   LDFLAGS     ?=
 endif
 
 # Compose final
-CXXFLAGS      += $(CXXSTD) $(WX_CXXFLAGS) $(WARNINGS) $(ALLEGRO_CFLAGS)
-LDLIBS        += $(WX_LDLIBS) $(ALLEGRO_LDLIBS)
+CXXFLAGS      += $(CXXSTD) $(WX_CXXFLAGS) $(DEPFLAGS) $(WARNINGS)
+LDLIBS        += $(WX_LDLIBS)
+LINK.o         = $(CXX) $(LDFLAGS)
 
 # =========================
 # Alvos
 # =========================
-.PHONY: all clean run info
+.PHONY: all run ldd readelf clean embed help
 
-all: prep $(BIN_DIR)/$(PROGRAM)
+all: $(PROGRAM)
 
-# Link final
-$(BIN_DIR)/$(PROGRAM): $(OBJS)
-	@echo "  LINK    $@"
-	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
+$(PROGRAM): $(OBJS)
+	$(LINK.o) $^ $(LDLIBS) -o $@
 
-# Compilação por arquivo
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@echo "  CXX     $<"
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(DEPFLAGS) -c $< -o $@
+# Geração opcional do arquivo embutido do XRC
+ifeq ($(EMBED_XRC),1)
+$(XRC_CPP): $(XRC_FILE)
+	$(WXRC) $< -c -o $@
+embed:
+	@$(MAKE) EMBED_XRC=1 all
+else
+embed:
+	@echo "Use EMBED_XRC=1 para embutir o XRC (ex.: make EMBED_XRC=1)"
+endif
 
-# Diretórios
-prep:
-	@mkdir -p $(BUILD_DIR) $(BIN_DIR)
+# Prioriza as libs locais na execução
+run: $(PROGRAM)
+	LD_LIBRARY_PATH="$(WX_LIB_PATH):$$LD_LIBRARY_PATH" ./$(PROGRAM)
 
-# Executar o programa
-run: all
-	@echo "  RUN     $(BIN_DIR)/$(PROGRAM)"
-	@$(BIN_DIR)/$(PROGRAM)
+ldd: $(PROGRAM)
+	ldd $^ | grep wx || true
 
-# Info útil para depuração
-info:
-	@echo "== INFO: ======================="
-	@echo "PROGRAM      = $(PROGRAM)"
-	@echo "SRCS         = $(SRCS)"
-	@echo "OBJS         = $(OBJS)"
-	@echo "CXX          = $(CXX)"
-	@echo "WX_CONFIG    = $(WX_CONFIG)"
-	@echo "CXXFLAGS     = $(CXXFLAGS)"
-	@echo "LDFLAGS      = $(LDFLAGS)"
-	@echo "LDLIBS       = $(LDLIBS)"
+readelf: $(PROGRAM)
+	readelf -d $^ | grep -E "(RPATH|RUNPATH)" || true
 
-# Limpeza
 clean:
-	@echo "== CLEAN: ======================="
-	rm -rf $(BUILD_DIR) $(BIN_DIR)
+	/bin/rm -rf $(PROGRAM) $(OBJS) $(DEPS) $(XRC_CPP)
 
 # Dependências automáticas
 -include $(DEPS)
+
+help:
+	@echo "Makefile para wx LOCAL (WX_INSTALL_DIR)"
+	@echo "  make               -> compila usando $(WX_CONFIG)"
+	@echo "  make EMBED_XRC=1   -> embute XRC (gera ui_xrc.cpp com wxrc -c)"
+	@echo "  make run           -> executa com LD_LIBRARY_PATH ajustado"
+	@echo "  make clean         -> limpa artefatos"

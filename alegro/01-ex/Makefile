@@ -45,7 +45,18 @@ WX_LDLIBS     := $(shell $(WX_CONFIG) $(WX_CONFIG_OPT) --libs core,base)
 
 PKG_CONFIG_PATH:=/usr/lib/x86_64-linux-gnu/pkgconfig
 export PKG_CONFIG_PATH
-ALLEGRO_LIBS = allegro-5 allegro_font-5 allegro_ttf-5 allegro_main-5 allegro_primitives-5
+
+ALLEGRO_LIBS_WITHOUT_VERSION = \
+		allegro \
+		allegro_font \
+		allegro_ttf \
+		allegro_main \
+		allegro_primitives
+
+ALLEGRO_LIBS_VERSION = $(addsuffix -5,$(ALLEGRO_LIBS_WITHOUT_VERSION))
+#ALLEGRO_LIBS_VERSION = $(patsubst %,%-5,$(ALLEGRO_LIBS_WITHOUT_VERSION))
+
+ALLEGRO_LIBS   = $(ALLEGRO_LIBS_VERSION)
 ALLEGRO_CFLAGS = $(shell /usr/bin/pkg-config --cflags $(ALLEGRO_LIBS))
 ALLEGRO_LDLIBS = $(shell /usr/bin/pkg-config --libs $(ALLEGRO_LIBS))
 
@@ -100,6 +111,7 @@ run: all
 
 # Info útil para depuração
 info:
+	@echo "== INFO: ======================="
 	@echo "PROGRAM      = $(PROGRAM)"
 	@echo "SRCS         = $(SRCS)"
 	@echo "OBJS         = $(OBJS)"
@@ -111,8 +123,8 @@ info:
 
 # Limpeza
 clean:
-	@echo "  CLEAN"
-	@rm -rf $(BUILD_DIR) $(BIN_DIR)
+	@echo "== CLEAN: ======================="
+	rm -rf $(BUILD_DIR) $(BIN_DIR)
 
 # Dependências automáticas
 -include $(DEPS)

@@ -1,12 +1,8 @@
-#ifndef MYAPP_H
-#define MYAPP_H
-
+#pragma once
 #include <wx/wx.h>
 
-class MyApp : public wxApp {
+class MyApp final : public wxApp {
 public:
     bool OnInit() override;
 };
-
-#endif // MYAPP_H
 

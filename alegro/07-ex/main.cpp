@@ -2,57 +2,122 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
 
+#ifdef __WXGTK__
+#include <gtk/gtk.h>
+#include <gdk/gdk.h>
+#include <gdk/gdkx.h>   // GDK_WINDOW_XID (X11)
+#endif
+
 class MyPanel : public wxPanel
 {
 private:
-    SDL_Window* sdlWindow;
-    SDL_Renderer* renderer;
-    bool sdlInitialized;
+    SDL_Window*   sdlWindow   = nullptr;
+    SDL_Renderer* renderer    = nullptr;
+    bool          sdlInitDone = false;
+    bool          triedInit   = false;
 
 public:
     MyPanel (wxWindow* parent)
         : wxPanel (parent, wxID_ANY, wxDefaultPosition, wxSize (640, 480))
-        , sdlWindow (nullptr)
-        , renderer (nullptr)
-        , sdlInitialized (false)
     {
-        // Inicializa SDL
-        if (SDL_Init (SDL_INIT_VIDEO) < 0)
-        {
-            wxLogError ("Falha ao inicializar SDL: %s", SDL_GetError());
-            return;
-        }
+        // Evita que o wx apague o fundo e cause flicker
+        SetBackgroundStyle (wxBG_STYLE_PAINT);
 
-        sdlInitialized = true;
-
+        Bind (wxEVT_SHOW, &MyPanel::OnShow, this);
         Bind (wxEVT_PAINT, &MyPanel::OnPaint, this);
         Bind (wxEVT_SIZE, &MyPanel::OnSize, this);
+        Bind (wxEVT_ERASE_BACKGROUND, &MyPanel::OnEraseBackground, this);
     }
 
-    ~MyPanel()
+    ~MyPanel() override
     {
         CleanupSDL();
-        if (sdlInitialized)
-        {
+        if (sdlInitDone)
             SDL_Quit();
-        }
     }
 
 private:
-    void InitSDL()
-    {
-        if (sdlWindow) return; // Já inicializado
+    void OnEraseBackground (wxEraseEvent&) { /* evita apagar fundo */ }
 
-        // Cria janela SDL a partir do handle nativo do wxWidgets
-        sdlWindow = SDL_CreateWindowFrom ((void*)GetHandle());
+    void OnShow (wxShowEvent& e)
+    {
+        e.Skip();
+        if (e.IsShown())
+            EnsureSDLReady();
+    }
+
+    void OnSize (wxSizeEvent& e)
+    {
+        e.Skip();
+        EnsureSDLReady();
+
+        if (renderer)
+        {
+            // Atualiza viewport para novo tamanho
+            wxSize s = GetClientSize();
+            SDL_Rect vp{0, 0, s.GetWidth(), s.GetHeight()};
+            SDL_RenderSetViewport (renderer, &vp);
+            Refresh();
+        }
+    }
+
+    void OnPaint (wxPaintEvent& e)
+    {
+        wxPaintDC dc (this); // necessário no wx
+
+        EnsureSDLReady();
+        if (!renderer) return;
+
+        // Desenho SDL
+        SDL_SetRenderDrawColor (renderer, 0, 128, 255, 255); // azul
+        SDL_RenderClear (renderer);
+
+        // Exemplo de primitiva
+        // SDL_RenderDrawLine(renderer, 10, 10, 200, 120);
+
+        SDL_RenderPresent (renderer);
+    }
+
+    void EnsureSDLReady()
+    {
+        if (renderer) return;
+
+        // Inicializa SDL apenas uma vez
+        if (!sdlInitDone && !triedInit)
+        {
+            triedInit = true;
+            if (SDL_Init (SDL_INIT_VIDEO) < 0)
+            {
+                wxLogError ("Falha ao inicializar SDL: %s", SDL_GetError());
+                return;
+            }
+            sdlInitDone = true;
+        }
+
+        // Cria SDL_Window a partir do handle nativo do wxPanel
+        if (!sdlWindow && sdlInitDone)
+            InitSDLFromWxPanel();
+    }
+
+    void InitSDLFromWxPanel()
+    {
+        void* nativeHandle = GetNativeHandleForSDL();
+        if (!nativeHandle)
+        {
+            // A janela ainda não está pronta/realizada
+            return;
+        }
+
+        sdlWindow = SDL_CreateWindowFrom (nativeHandle);
         if (!sdlWindow)
         {
             wxLogError ("Falha ao criar SDL_Window: %s", SDL_GetError());
             return;
         }
 
-        // Cria renderer
-        renderer = SDL_CreateRenderer (sdlWindow, -1,
+        // Cria renderer acelerado
+        renderer = SDL_CreateRenderer (sdlWindow,
+                                       -1,
                                        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
         if (!renderer)
         {
@@ -61,6 +126,11 @@ private:
             sdlWindow = nullptr;
             return;
         }
+
+        // Ajusta viewport inicial
+        wxSize s = GetClientSize();
+        SDL_Rect vp{0, 0, s.GetWidth(), s.GetHeight()};
+        SDL_RenderSetViewport (renderer, &vp);
     }
 
     void CleanupSDL()
@@ -72,37 +142,42 @@ private:
         }
         if (sdlWindow)
         {
+            // Importante: quando a janela veio de CreateWindowFrom,
+            // o DestroyWindow é permitido e seguro.
             SDL_DestroyWindow (sdlWindow);
             sdlWindow = nullptr;
         }
     }
 
-    void OnPaint (wxPaintEvent& event)
+    void* GetNativeHandleForSDL()
     {
-        // wxPaintDC é necessário para evitar loops infinitos de paint
-        wxPaintDC dc (this);
+#ifdef __WXMSW__
+        // No MSW, GetHandle() retorna HWND diretamente
+        return reinterpret_cast<void*> (GetHWND());
+#elif defined(__WXGTK__)
+        // No GTK/X11: precisamos do XID (Window) do GdkWindow
+        GtkWidget* widget = static_cast<GtkWidget*> (GetHandle());
+        if (!widget)
+            return nullptr;
 
-        // Inicializa SDL na primeira pintura (quando a janela já existe)
-        if (!sdlWindow)
-        {
-            InitSDL();
-        }
+        // Garante que o widget tenha GdkWindow
+        if (!gtk_widget_get_realized (widget))
+            gtk_widget_realize (widget);
 
-        if (!renderer) return;
+        GdkWindow* gdkWin = gtk_widget_get_window (widget);
+        if (!gdkWin)
+            return nullptr;
 
-        // Renderiza com SDL
-        SDL_SetRenderDrawColor (renderer, 0, 128, 255, 255); // azul
-        SDL_RenderClear (renderer);
-
-        // Aqui você pode desenhar mais coisas...
-
-        SDL_RenderPresent (renderer);
-    }
-
-    void OnSize (wxSizeEvent& event)
-    {
-        event.Skip();
-        Refresh(); // Força redesenho ao redimensionar
+        // Converte para X11 Window:
+        Window xid = GDK_WINDOW_XID (gdkWin);
+        return reinterpret_cast<void*> (xid);
+#elif defined(__WXOSX__)
+        // Embutir SDL em NSView/NSWindow não é trivial via SDL2 puro.
+        // Retornamos nullptr para não tentar no macOS com este método.
+        return nullptr;
+#else
+        return nullptr;
+#endif
     }
 };
 
@@ -110,8 +185,11 @@ class MyFrame : public wxFrame
 {
 public:
     MyFrame()
-        : wxFrame (nullptr, wxID_ANY, "wxWidgets + SDL2",
-                   wxDefaultPosition, wxSize (660, 500))
+        : wxFrame (nullptr,
+                   wxID_ANY,
+                   "wxWidgets + SDL2",
+                   wxDefaultPosition,
+                   wxSize (660, 500))
     {
         new MyPanel (this);
         Centre();
@@ -121,9 +199,9 @@ public:
 class MyApp : public wxApp
 {
 public:
-    virtual bool OnInit() override
+    bool OnInit() override
     {
-        MyFrame* frame = new MyFrame();
+        auto* frame = new MyFrame();
         frame->Show (true);
         return true;
     }

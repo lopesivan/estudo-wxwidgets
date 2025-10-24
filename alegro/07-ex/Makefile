@@ -40,13 +40,22 @@ export PKG_CONFIG_PATH
 SDL_LIBS_WITHOUT_VERSION = \
 		sdl2
 
-#SDL_LIBS_VERSION = $(addsuffix -5,$(SDL_LIBS_WITHOUT_VERSION))
-#SDL_LIBS_VERSION = $(patsubst %,%-5,$(SDL_LIBS_WITHOUT_VERSION))
 SDL_LIBS_VERSION = $(SDL_LIBS_WITHOUT_VERSION)
 
 SDL_LIBS   = $(SDL_LIBS_VERSION)
 SDL_CFLAGS = $(shell /usr/bin/pkg-config --cflags $(SDL_LIBS))
 SDL_LDLIBS = $(shell /usr/bin/pkg-config --libs $(SDL_LIBS))
+
+GTK_LIBS_WITHOUT_VERSION = \
+	gtk+-3.0 \
+	gdk-3.0 \
+	gdk-x11-3.0
+
+GTK_LIBS_VERSION = $(GTK_LIBS_WITHOUT_VERSION)
+
+GTK_LIBS   = $(GTK_LIBS_VERSION)
+GTK_CFLAGS = $(shell /usr/bin/pkg-config --cflags $(GTK_LIBS))
+GTK_LDLIBS = $(shell /usr/bin/pkg-config --libs $(GTK_LIBS))
 
 # Flags de dep (-MMD -MP) para gerar .d e recompilar só o necessário
 DEPFLAGS      := -MMD -MP
@@ -68,8 +77,8 @@ else
 endif
 
 # Compose final
-CXXFLAGS      += $(WX_CXXFLAGS) $(WARNINGS) $(SDL_CFLAGS)
-LDLIBS        += $(WX_LDLIBS) $(SDL_LDLIBS)
+CXXFLAGS      += $(WX_CXXFLAGS) $(WARNINGS) $(SDL_CFLAGS) $(GTK_CFLAGS)
+LDLIBS        += $(WX_LDLIBS) $(SDL_LDLIBS) $(GTK_LDLIBS)
 
 # =========================
 # Alvos

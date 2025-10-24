@@ -1,3 +1,30 @@
+1) Bridge (wx como abstração • Allegro como implementor)
+Parte 1 — Interface & Estrutura
+
+Crie a arquitetura inicial do padrão Bridge para integrar wxWidgets (UI/host) e um backend de renderização (Allegro).
+Sem código de Allegro ainda.
+Entregue:
+
+pastas/arquivos (ui/, render/, core/),
+
+interface IRenderBackend (métodos essenciais: init(handle,w,h), resize, render, shutdown),
+
+classe RenderView (wxPanel) que conhece apenas a interface,
+
+diagrama textual de dependências.
+Não escreva código ainda; apenas explique as responsabilidades de cada arquivo e como se conectam.
+
+Parte 2 — Implementor Allegro
+
+Agora implemente o implementor do Bridge: AllegroBackend que implementa IRenderBackend.
+Entregue: passos de inicialização, ciclo de draw, encerramento e como receber o native handle do RenderView.
+Mostre como injetar a instância no RenderView (sem código, só o plano).
+
+Parte 3 — Troca fácil de backend
+
+Mostre como criar um segundo backend “Mock” (ou SDL) e como alternar entre backends sem mudar a UI.
+Entregue: pontos exatos onde a troca acontece e checklist de teste manual.
+
 # perfeito — vamos montar isso em duas partes, no estilo “Bridge”: **wxWidgets = Abstraction (UI/host)** e **Allegro = Implementor (renderização)**. Vou me apoiar no comportamento do seu código atual (painel wx renderizando via Allegro em bitmap offscreen e blit para o wx).
 
 ---

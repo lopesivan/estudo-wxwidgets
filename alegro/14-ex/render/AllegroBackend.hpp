@@ -1,17 +1,22 @@
 // render/AllegroBackend.hpp
 #pragma once
-#include <memory>
 #include <vector>
+
 #include "core/IRenderBackend.hpp"
 
 struct ALLEGRO_BITMAP;
 struct ALLEGRO_FONT;
 
-namespace core { struct RenderModel; }
+namespace core
+{
+struct RenderModel;
+}
 
-namespace render {
+namespace render
+{
 
-class AllegroBackend final : public core::IRenderBackend {
+class AllegroBackend final : public core::IRenderBackend
+{
 public:
     AllegroBackend();
     ~AllegroBackend() override;
@@ -27,13 +32,12 @@ public:
 
 private:
     ALLEGRO_BITMAP* backbuffer_ = nullptr;
-    ALLEGRO_FONT*   font_ = nullptr;
-    int             w_ = 0, h_ = 0;
-    bool            initialized_ = false;
+    ALLEGRO_FONT* font_ = nullptr;
+    int w_ = 0, h_ = 0;
+    bool initialized_ = false;
 
     void ensureBackbuffer(int w, int h);
     void clearBlack();
 };
 
-} // namespace render
-
+}  // namespace render

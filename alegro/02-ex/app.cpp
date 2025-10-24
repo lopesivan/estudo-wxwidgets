@@ -1,13 +1,13 @@
 #include "app.h"
 #include "frame.h"
 
-wxIMPLEMENT_APP(MyApp);
+wxIMPLEMENT_APP (MyApp);
 
-bool MyApp::OnInit() {
+bool MyApp::OnInit()
+{
     wxInitAllImageHandlers();
 
-    MyFrame* frame = new MyFrame();
-    frame->Show(true);
+    auto* frame = new MyFrame();
+    frame->Show (true);
     return true;
 }
-

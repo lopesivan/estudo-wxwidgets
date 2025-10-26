@@ -8,6 +8,9 @@ namespace core
 constexpr float X_KM_MAX = 1920.0f;
 constexpr float Y_KM_MAX = 1080.0f;
 
+constexpr int DEFAULT_WIDTH  = 1280;
+constexpr int DEFAULT_HEIGHT = 720;
+
 struct RenderModel
 {
     // estado de interação

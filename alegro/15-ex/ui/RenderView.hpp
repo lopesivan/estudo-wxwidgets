@@ -2,7 +2,7 @@
 #pragma once
 #include <wx/wx.h>
 
-#include <cstring>  // <-- ADICIONE ISTO
+#include <cstring>
 #include <memory>
 #include <vector>
 
@@ -14,14 +14,15 @@ namespace ui
 
 class RenderView : public wxPanel
 {
-public:
+  public:
     explicit RenderView(
-        wxWindow* parent,
+        wxWindow*                             parent,
         std::unique_ptr<core::IRenderBackend> backend)
-        : wxPanel(parent,
-                  wxID_ANY,
-                  wxDefaultPosition,
-                  wxSize(1280, 720)),
+        : wxPanel(
+              parent,
+              wxID_ANY,
+              wxDefaultPosition,
+              wxSize(core::DEFAULT_WIDTH, core::DEFAULT_HEIGHT)),
           backend_(std::move(backend))
     {
         SetBackgroundStyle(wxBG_STYLE_PAINT);
@@ -32,7 +33,7 @@ public:
         Bind(wxEVT_MOTION, &RenderView::OnMouseMove, this);
         Bind(wxEVT_CHAR_HOOK, &RenderView::OnCharHook, this);
 
-        model_.width = GetSize().x;
+        model_.width  = GetSize().x;
         model_.height = GetSize().y;
 
         backend_->init(
@@ -41,20 +42,20 @@ public:
 
     ~RenderView() override
     {
-        if (backend_)
+        if(backend_)
             backend_->shutdown();
     }
 
-private:
+  private:
     std::unique_ptr<core::IRenderBackend> backend_;
-    core::RenderModel model_;
+    core::RenderModel                     model_;
     std::vector<unsigned char>
         frameRGB_;  // buffer temporário para wxImage
 
     void OnResize(wxSizeEvent& e)
     {
         const auto sz = e.GetSize();
-        model_.width = std::max(1, sz.GetWidth());
+        model_.width  = std::max(1, sz.GetWidth());
         model_.height = std::max(1, sz.GetHeight());
         backend_->resize(model_.width, model_.height);
         Refresh(false);
@@ -71,15 +72,15 @@ private:
     void OnCharHook(wxKeyEvent& e)
     {
         const int code = e.GetKeyCode();
-        if (code == WXK_ESCAPE)
+        if(code == WXK_ESCAPE)
         {
-            if (auto* tlw = wxGetTopLevelParent(this))
+            if(auto* tlw = wxGetTopLevelParent(this))
                 tlw->Close(false);
             return;
         }
-        else if (code == WXK_SPACE)
+        else if(code == WXK_SPACE)
         {
-            if (model_.points_stored < 2)
+            if(model_.points_stored < 2)
             {
                 core::armazenar_posicao_mouse(model_.mouse_x_px,
                                               model_.mouse_y_px,
@@ -104,13 +105,13 @@ private:
     void OnPaint(wxPaintEvent&)
     {
         wxPaintDC dc(this);
-        if (!backend_)
+        if(!backend_)
             return;
 
         backend_->render(model_);
 
         int w = 0, h = 0;
-        if (!backend_->getFrameRGB(frameRGB_, w, h))
+        if(!backend_->getFrameRGB(frameRGB_, w, h))
             return;
 
         wxImage img(w, h);

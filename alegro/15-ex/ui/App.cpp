@@ -5,7 +5,7 @@
 
 class MyApp : public wxApp
 {
-public:
+  public:
     bool OnInit() override
     {
         auto* f = new ui::AppFrame();

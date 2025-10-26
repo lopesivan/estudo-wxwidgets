@@ -224,6 +224,12 @@ void AllegroBackend::shutdown()
     if(initialized_)
     {
         al_shutdown_primitives_addon();
+
+        // BUG: X--------------------------
+        al_shutdown_ttf_addon();
+        al_shutdown_font_addon();
+        // BUG: --------------------------X
+
         al_uninstall_system();
         initialized_ = false;
     }

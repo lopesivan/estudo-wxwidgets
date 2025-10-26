@@ -218,19 +218,25 @@ bool AllegroBackend::getFrameRGB(std::vector<unsigned char>& outRGB,
 
 void AllegroBackend::shutdown()
 {
+    // 1) Destrua recursos que dependem dos add-ons antes de
+    // desligá-los
     font_.reset();
     backbuffer_.reset();
 
     if(initialized_)
     {
-        al_shutdown_primitives_addon();
+        // 2) Desinstale dispositivos
+        al_uninstall_mouse();
+        al_uninstall_keyboard();
 
-        // BUG: X--------------------------
+        // 3) Feche add-ons explicitamente (TTF depende de font)
+        al_shutdown_primitives_addon();
         al_shutdown_ttf_addon();
         al_shutdown_font_addon();
-        // BUG: --------------------------X
 
+        // 4) Por último, o core
         al_uninstall_system();
+
         initialized_ = false;
     }
 }
@@ -249,7 +255,7 @@ void AllegroBackend::clearBlack()
     if(!backbuffer_)
         return;
     al_set_target_bitmap(backbuffer_.get());
-    al_clear_to_color(al_map_rgb(0, 0, 0));
+    al_clear_to_color(colors_.black);
 }
 
 }  // namespace render

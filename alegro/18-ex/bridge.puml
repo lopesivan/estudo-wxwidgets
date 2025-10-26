@@ -1,7 +1,19 @@
 @startuml
-title Bridge: wx (Abstraction) + Backend (Implementor)
+title Bridge aplicado: wxWidgets (Abstraction) + Allegro (Implementor)
+
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+hide circle
 
 package core {
+  interface IRenderBackend {
+    +bool init(void* native_handle, int width, int height)
+    +void resize(int width, int height)
+    +void render(RenderModel model)
+    +bool getFrameRGB(outRGB, width, height)
+    +void shutdown()
+  }
+
   class RenderModel {
     +float mouse_x_px
     +float mouse_y_px
@@ -16,40 +28,81 @@ package core {
     +calcular_modulo_vetor(...)
   }
 
-  interface IRenderBackend {
-    +bool init(void* native_handle, int w, int h)
-    +void resize(int w, int h)
-    +void render(RenderModel model)
-    +bool getFrameRGB(out RGB: vector<byte>, out w: int, out h: int)
-    +void shutdown()
+  enum RenderBackendType {
+    Allegro
+  }
+
+  class BackendFactory {
+    +makeBackend(type: RenderBackendType) : IRenderBackend*
   }
 }
 
 package render {
-  class AllegroBackend implements core.IRenderBackend
-  class SdlBackend implements core.IRenderBackend
+  class AllegroBackend {
+    -backbuffer_ : BitmapUPtr
+    -font_      : FontUPtr
+    -w_ : int
+    -h_ : int
+    -initialized_ : bool
+    -colors_ : Palette
+    +init(...)
+    +resize(...)
+    +render(model)
+    +getFrameRGB(...)
+    +shutdown()
+    -ensureBackbuffer(w,h)
+    -clearBlack()
+  }
+
+  class Palette {
+    +green : ALLEGRO_COLOR
+    +red   : ALLEGRO_COLOR
+    +yellow: ALLEGRO_COLOR
+    +cyan  : ALLEGRO_COLOR
+    +white : ALLEGRO_COLOR
+    +black : ALLEGRO_COLOR
+  }
+
+  class AllegroDeleter {
+    +operator()(ALLEGRO_BITMAP*) : void
+    +operator()(ALLEGRO_FONT*)   : void
+    ..(outros tipos suportados)..
+  }
+
+  AllegroBackend ..|> core.IRenderBackend
+  AllegroBackend *-- Palette
 }
 
 package ui {
   class RenderView {
-    -backend: core.IRenderBackend
-    -model: core.RenderModel
+    -backend_ : core::IRenderBackend*
+    -model_   : core::RenderModel
+    -frameRGB_: std::vector<unsigned char>
     +OnPaint()
     +OnResize()
     +OnMouseMove()
     +OnCharHook()
   }
 
-  class AppFrame
-  class App
+  class AppFrame {
+    +AppFrame()
+  }
+
+  class MyApp {
+    +OnInit() : bool
+  }
 }
 
-ui.RenderView o-- core.RenderModel
-ui.RenderView *- core.IRenderBackend
-render.AllegroBackend ..|> core.IRenderBackend
-render.SdlBackend ..|> core.IRenderBackend
-ui.AppFrame o-- ui.RenderView
-ui.App --> ui.AppFrame
+ui.RenderView *- core.IRenderBackend : compõe
+ui.RenderView o- core.RenderModel    : agrega
+ui.AppFrame o- ui.RenderView         : contém
+core.BackendFactory ..> render.AllegroBackend : cria
+ui.AppFrame ..> core.BackendFactory  : usa
+
+note right of render.AllegroBackend
+  RAII: BitmapUPtr/FontUPtr usam AllegroDeleter
+  para destruir recursos Allegro automaticamente.
+end note
 
 @enduml
 

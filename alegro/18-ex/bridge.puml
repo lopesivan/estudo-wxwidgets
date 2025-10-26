@@ -1,0 +1,55 @@
+@startuml
+title Bridge: wx (Abstraction) + Backend (Implementor)
+
+package core {
+  class RenderModel {
+    +float mouse_x_px
+    +float mouse_y_px
+    +int   width
+    +int   height
+    +float pos_km_x[2]
+    +float pos_km_y[2]
+    +int   points_stored
+    +resetar_posicoes()
+    +armazenar_posicao_mouse(...)
+    +converter_km_para_pixel(...)
+    +calcular_modulo_vetor(...)
+  }
+
+  interface IRenderBackend {
+    +bool init(void* native_handle, int w, int h)
+    +void resize(int w, int h)
+    +void render(RenderModel model)
+    +bool getFrameRGB(out RGB: vector<byte>, out w: int, out h: int)
+    +void shutdown()
+  }
+}
+
+package render {
+  class AllegroBackend implements core.IRenderBackend
+  class SdlBackend implements core.IRenderBackend
+}
+
+package ui {
+  class RenderView {
+    -backend: core.IRenderBackend
+    -model: core.RenderModel
+    +OnPaint()
+    +OnResize()
+    +OnMouseMove()
+    +OnCharHook()
+  }
+
+  class AppFrame
+  class App
+}
+
+ui.RenderView o-- core.RenderModel
+ui.RenderView *- core.IRenderBackend
+render.AllegroBackend ..|> core.IRenderBackend
+render.SdlBackend ..|> core.IRenderBackend
+ui.AppFrame o-- ui.RenderView
+ui.App --> ui.AppFrame
+
+@enduml
+

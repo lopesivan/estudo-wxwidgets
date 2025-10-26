@@ -22,3 +22,7 @@ CMakeUserPresets.json
 
 # End of https://www.toptal.com/developers/gitignore/api/cmake
 .cache/
+
+app
+cmake_install.cmake
+compile_commands.json

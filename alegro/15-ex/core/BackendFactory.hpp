@@ -3,13 +3,14 @@
 #include <memory>
 #include "IRenderBackend.hpp"
 
-namespace core {
+namespace core
+{
 
-enum class RenderBackendType {
+enum class RenderBackendType
+{
     Allegro
 };
 
 std::unique_ptr<IRenderBackend> makeBackend(RenderBackendType type);
 
-} // namespace core
-
+}  // namespace core

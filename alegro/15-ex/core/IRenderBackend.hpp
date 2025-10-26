@@ -2,18 +2,27 @@
 #pragma once
 #include <vector>
 
-namespace core {
+namespace core
+{
 
 struct RenderModel;
 
 // Interface Bridge — Implementor
-class IRenderBackend {
+// Don't touch this!
+// clang-format off
+class IRenderBackend
+{
 public:
     virtual ~IRenderBackend() = default;
 
     // Pode ignorar native_handle se o backend for offscreen
-    virtual bool init(void* native_handle, int width, int height) = 0;
-    virtual void resize(int width, int height) = 0;
+    virtual bool init(void* native_handle,
+                      int width,
+                      int height) = 0;
+
+    virtual void resize(int width,
+                        int height) = 0;
+
     virtual void render(const RenderModel& model) = 0;
     virtual void shutdown() = 0;
 
@@ -23,6 +32,7 @@ public:
                              int& width,
                              int& height) = 0;
 };
+// clang-format on
+// Carry on formatting
 
-} // namespace core
-
+}  // namespace core

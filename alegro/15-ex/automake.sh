@@ -45,7 +45,7 @@ echo -e "${YELLOW}Pressione Ctrl+C para parar${NC}\n"
 
 # Executa make inicial
 echo -e "${BLUE}[$(date '+%H:%M:%S')]${NC} Executando make inicial..."
-if make -C "$WATCH_DIR"; then
+if bear -- make -C "$WATCH_DIR"; then
     echo -e "${GREEN}✓ Build inicial concluído${NC}\n"
 else
     echo -e "${RED}✗ Build inicial falhou${NC}\n"

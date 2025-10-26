@@ -27,9 +27,9 @@ bool AllegroBackend::init(void* /*native_handle*/,
                           int width,
                           int height)
 {
-    if (!al_is_system_installed())
+    if(!al_is_system_installed())
     {
-        if (!al_init())
+        if(!al_init())
             return false;
     }
     al_install_mouse();
@@ -42,12 +42,12 @@ bool AllegroBackend::init(void* /*native_handle*/,
     h_ = height;
     al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
     backbuffer_ = al_create_bitmap(w_, h_);
-    if (!backbuffer_)
+    if(!backbuffer_)
         return false;
 
     font_ =
         al_load_font("SauceCodeProNerdFontMono-Regular.ttf", 20, 0);
-    if (!font_)
+    if(!font_)
         font_ = al_create_builtin_font();
 
     clearBlack();
@@ -57,7 +57,7 @@ bool AllegroBackend::init(void* /*native_handle*/,
 
 void AllegroBackend::resize(int width, int height)
 {
-    if (!initialized_)
+    if(!initialized_)
         return;
     ensureBackbuffer(width, height);
     clearBlack();
@@ -65,7 +65,7 @@ void AllegroBackend::resize(int width, int height)
 
 void AllegroBackend::render(const core::RenderModel& model)
 {
-    if (!initialized_ || !backbuffer_)
+    if(!initialized_ || !backbuffer_)
         return;
 
     al_set_target_bitmap(backbuffer_);
@@ -73,7 +73,7 @@ void AllegroBackend::render(const core::RenderModel& model)
 
     // desenha pontos / textos conforme mouse_pos.c
     char buffer[128];
-    for (int i = 0; i < model.points_stored; ++i)
+    for(int i = 0; i < model.points_stored; ++i)
     {
         float px, py;
         core::converter_km_para_pixel(model.pos_km_x[i],
@@ -89,7 +89,7 @@ void AllegroBackend::render(const core::RenderModel& model)
                       i + 1,
                       model.pos_km_x[i],
                       model.pos_km_y[i]);
-        if (font_)
+        if(font_)
             al_draw_text(font_,
                          al_map_rgb(255, 255, 255),
                          20,
@@ -98,7 +98,7 @@ void AllegroBackend::render(const core::RenderModel& model)
                          buffer);
     }
 
-    if (model.points_stored == 2)
+    if(model.points_stored == 2)
     {
         float x1, y1, x2, y2;
         core::converter_km_para_pixel(model.pos_km_x[0],
@@ -120,7 +120,7 @@ void AllegroBackend::render(const core::RenderModel& model)
                       "Delta: dX=%.2f km, dY=%.2f km",
                       model.pos_km_x[1] - model.pos_km_x[0],
                       model.pos_km_y[1] - model.pos_km_y[0]);
-        if (font_)
+        if(font_)
             al_draw_text(font_,
                          al_map_rgb(255, 255, 255),
                          20,
@@ -136,7 +136,7 @@ void AllegroBackend::render(const core::RenderModel& model)
                                         model.pos_km_y[0],
                                         model.pos_km_x[1],
                                         model.pos_km_y[1]));
-        if (font_)
+        if(font_)
             al_draw_text(font_,
                          al_map_rgb(255, 255, 255),
                          20,
@@ -145,7 +145,7 @@ void AllegroBackend::render(const core::RenderModel& model)
                          buffer);
     }
 
-    if (font_)
+    if(font_)
     {
         al_draw_text(font_,
                      al_map_rgb(200, 200, 200),
@@ -157,13 +157,13 @@ void AllegroBackend::render(const core::RenderModel& model)
 }
 
 bool AllegroBackend::getFrameRGB(std::vector<unsigned char>& outRGB,
-                                 int& width,
-                                 int& height)
+                                 int&                        width,
+                                 int&                        height)
 {
-    if (!initialized_ || !backbuffer_)
+    if(!initialized_ || !backbuffer_)
         return false;
 
-    width = w_;
+    width  = w_;
     height = h_;
     outRGB.resize(w_ * h_ * 3);
 
@@ -176,10 +176,10 @@ bool AllegroBackend::getFrameRGB(std::vector<unsigned char>& outRGB,
     (void)lr;  // lock opcional (ajuda performance)
 
     unsigned char* dst = outRGB.data();
-    for (int y = 0; y < h_; ++y)
+    for(int y = 0; y < h_; ++y)
     {
         unsigned char* d = dst + y * w_ * 3;
-        for (int x = 0; x < w_; ++x)
+        for(int x = 0; x < w_; ++x)
         {
             ALLEGRO_COLOR c = al_get_pixel(backbuffer_, x, y);
             unsigned char r, g, b, a;
@@ -190,7 +190,7 @@ bool AllegroBackend::getFrameRGB(std::vector<unsigned char>& outRGB,
             d += 3;
         }
     }
-    if (lr)
+    if(lr)
         al_unlock_bitmap(backbuffer_);
 
     return true;
@@ -198,17 +198,17 @@ bool AllegroBackend::getFrameRGB(std::vector<unsigned char>& outRGB,
 
 void AllegroBackend::shutdown()
 {
-    if (font_)
+    if(font_)
     {
         al_destroy_font(font_);
         font_ = nullptr;
     }
-    if (backbuffer_)
+    if(backbuffer_)
     {
         al_destroy_bitmap(backbuffer_);
         backbuffer_ = nullptr;
     }
-    if (initialized_)
+    if(initialized_)
     {
         al_shutdown_primitives_addon();
         al_uninstall_system();
@@ -220,7 +220,7 @@ void AllegroBackend::ensureBackbuffer(int w, int h)
 {
     w_ = w;
     h_ = h;
-    if (backbuffer_)
+    if(backbuffer_)
     {
         al_destroy_bitmap(backbuffer_);
         backbuffer_ = nullptr;
@@ -231,7 +231,7 @@ void AllegroBackend::ensureBackbuffer(int w, int h)
 
 void AllegroBackend::clearBlack()
 {
-    if (!backbuffer_)
+    if(!backbuffer_)
         return;
     al_set_target_bitmap(backbuffer_);
     al_clear_to_color(al_map_rgb(0, 0, 0));
@@ -248,11 +248,11 @@ namespace core
 {
 std::unique_ptr<IRenderBackend> makeBackend(RenderBackendType type)
 {
-    switch (type)
+    switch(type)
     {
-        case RenderBackendType::Allegro:
-        default:
-            return std::make_unique<render::AllegroBackend>();
+    case RenderBackendType::Allegro:
+    default:
+        return std::make_unique<render::AllegroBackend>();
     }
 }
 }  // namespace core

@@ -1,22 +1,22 @@
 @startuml
-title Sequência: RenderView usando IRenderBackend
+title Sequência: RenderView → IRenderBackend (AllegroBackend)
 
 actor User
 participant "wx EventLoop" as WX
-participant "RenderView (Abstraction)" as RV
-participant "IRenderBackend (Bridge)" as IB
-participant "AllegroBackend (Impl)" as AB
+participant "RenderView\n(Abstraction)" as RV
+participant "IRenderBackend\n(Bridge)" as IB
+participant "AllegroBackend\n(ConcreteImplementor)" as AB
 participant "wxDC" as DC
 
-User -> WX : move mouse / tecla (SPACE/ESC)
-WX -> RV : eventos (OnMouseMove/OnCharHook)\n→ atualiza RenderModel
-User -> WX : solicita repintar
-WX -> RV : OnPaint()
-RV -> IB : render(model)
-IB -> AB : render(model)  # implementação concreta
-AB --> IB : backbuffer atualizado
-RV -> IB : getFrameRGB(out rgb,w,h)
+User -> WX : mouse/teclas (MOVE/SPACE/ESC)
+WX -> RV  : eventos (OnMouseMove / OnCharHook)\n→ atualiza RenderModel
+User -> WX : repintar
+WX -> RV  : OnPaint()
+RV -> IB  : render(model)
+IB -> AB  : render(model)  // desenha no backbuffer Allegro
+AB --> IB : ok
+RV -> IB  : getFrameRGB(outRGB,w,h)
 IB --> RV : rgb, w, h
-RV -> DC : desenha wxBitmap(rgb)
+RV -> DC  : drawBitmap(rgb)
 @enduml
 

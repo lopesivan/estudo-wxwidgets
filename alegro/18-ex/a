@@ -1,0 +1,725 @@
+arquivo render/AllegroBackend.cpp:
+// render/AllegroBackend.cpp
+#include "render/AllegroBackend.hpp"
+#include "core/RenderModel.hpp"
+
+// Allegro
+#include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_ttf.h>
+
+// C++
+#include <cstdio>
+#include <cstring>
+#include <iostream>
+
+namespace render
+{
+
+AllegroBackend::AllegroBackend() = default;
+
+AllegroBackend::~AllegroBackend()
+{
+    shutdown();  // idempotente
+}
+
+bool AllegroBackend::init(void* /*native_handle*/,
+                          int width,
+                          int height)
+{
+    if(!al_is_system_installed())
+    {
+        if(!al_init())
+            return false;
+    }
+
+    if(!al_install_mouse())
+    {
+        std::cerr << "Falha ao instalar mouse.\n";
+    }
+
+    if(!al_install_keyboard())
+    {
+        std::cerr << "Falha ao instalar teclado.\n";
+    }
+
+    al_init_font_addon();
+    al_init_ttf_addon();
+    al_init_primitives_addon();
+
+    // Paleta (depois do init, por segurança)
+    colors_.green  = al_map_rgb(0, 255, 0);
+    colors_.red    = al_map_rgb(255, 0, 0);
+    colors_.yellow = al_map_rgb(255, 255, 0);
+    // se quiser manter 2, troque aqui
+    colors_.cyan  = al_map_rgb(2, 255, 255);
+    colors_.white = al_map_rgb(255, 255, 255);
+    colors_.black = al_map_rgb(0, 0, 0);
+
+    w_ = width;
+    h_ = height;
+
+    al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
+    backbuffer_.reset(al_create_bitmap(w_, h_));
+    if(!backbuffer_)
+        return false;
+
+    font_.reset(al_load_font(
+        "SauceCodeProNerdFontMono-Regular.ttf", 20, 0));
+    if(!font_)
+    {
+        font_.reset(al_create_builtin_font());
+        if(!font_)
+            return false;
+    }
+
+    clearBlack();
+    initialized_ = true;
+    return true;
+}
+
+void AllegroBackend::resize(int width, int height)
+{
+    if(!initialized_)
+        return;
+    ensureBackbuffer(width, height);
+    clearBlack();
+}
+
+void AllegroBackend::render(const core::RenderModel& model)
+{
+    if(!initialized_ || !backbuffer_)
+        return;
+
+    al_set_target_bitmap(backbuffer_.get());
+    al_clear_to_color(colors_.black);
+
+    // desenha pontos / textos
+    char buffer[128];
+    for(int i = 0; i < model.points_stored; ++i)
+    {
+        float px, py;
+        core::converter_km_para_pixel(model.pos_km_x[i],
+                                      model.pos_km_y[i],
+                                      model.width,
+                                      model.height,
+                                      &px,
+                                      &py);
+        al_draw_filled_circle(px, py, 10.0f, colors_.red);
+        std::snprintf(buffer,
+                      sizeof(buffer),
+                      "Posição %d: X=%.2f km, Y=%.2f km",
+                      i + 1,
+                      model.pos_km_x[i],
+                      model.pos_km_y[i]);
+        if(font_)
+            al_draw_text(font_.get(),
+                         colors_.white,
+                         20,
+                         20 + i * 30,
+                         0,
+                         buffer);
+    }
+
+    if(model.points_stored == 2)
+    {
+        float x1, y1, x2, y2;
+        core::converter_km_para_pixel(model.pos_km_x[0],
+                                      model.pos_km_y[0],
+                                      model.width,
+                                      model.height,
+                                      &x1,
+                                      &y1);
+        core::converter_km_para_pixel(model.pos_km_x[1],
+                                      model.pos_km_y[1],
+                                      model.width,
+                                      model.height,
+                                      &x2,
+                                      &y2);
+
+        al_draw_line(x1, y1, x2, y2, colors_.green, 2.0f);
+
+        std::snprintf(buffer,
+                      sizeof(buffer),
+                      "Delta: dX=%.2f km, dY=%.2f km",
+                      model.pos_km_x[1] - model.pos_km_x[0],
+                      model.pos_km_y[1] - model.pos_km_y[0]);
+
+        if(font_)
+            al_draw_text(
+                font_.get(), colors_.white, 20, 80, 0, buffer);
+
+        std::snprintf(
+            buffer,
+            sizeof(buffer),
+            "Módulo: u=%.2f km",
+            core::calcular_modulo_vetor(model.pos_km_x[0],
+                                        model.pos_km_y[0],
+                                        model.pos_km_x[1],
+                                        model.pos_km_y[1]));
+        if(font_)
+            al_draw_text(
+                font_.get(), colors_.white, 20, 110, 0, buffer);
+    }
+
+    if(font_)
+    {
+        al_draw_text(font_.get(),
+                     // colors_.white /* ou colors_.cyan etc. */,
+                     colors_.cyan /* ou colors_.cyan etc. */,
+                     20,
+                     model.height - 40,
+                     0,
+                     "[ESPAÇO] marca ponto | [ESC] sai");
+    }
+}
+
+bool AllegroBackend::getFrameRGB(std::vector<unsigned char>& outRGB,
+                                 int&                        width,
+                                 int&                        height)
+{
+    if(!initialized_ || !backbuffer_)
+        return false;
+
+    width  = w_;
+    height = h_;
+    outRGB.resize(static_cast<std::size_t>(w_) * h_ * 3);
+
+    // Lock RAII simples: unlock no final do escopo
+    struct BitmapLockGuard
+    {
+        ALLEGRO_BITMAP*        bmp{};
+        ALLEGRO_LOCKED_REGION* lr{};
+        ~BitmapLockGuard()
+        {
+            if(bmp && lr)
+                al_unlock_bitmap(bmp);
+        }
+    } guard{backbuffer_.get(),
+            al_lock_bitmap(
+                backbuffer_.get(), 0, ALLEGRO_LOCK_READONLY)};
+
+    unsigned char* dst = outRGB.data();
+    for(int y = 0; y < h_; ++y)
+    {
+        unsigned char* d =
+            dst + static_cast<std::size_t>(y) * w_ * 3;
+        for(int x = 0; x < w_; ++x)
+        {
+            ALLEGRO_COLOR c = al_get_pixel(backbuffer_.get(), x, y);
+            unsigned char r, g, b, a;
+            al_unmap_rgba(c, &r, &g, &b, &a);
+            d[0] = r;
+            d[1] = g;
+            d[2] = b;
+            d += 3;
+        }
+    }
+    return true;
+}
+
+void AllegroBackend::shutdown()
+{
+    // 1) Destrua recursos que dependem dos add-ons antes de
+    // desligá-los
+    font_.reset();
+    backbuffer_.reset();
+
+    if(initialized_)
+    {
+        // 2) Desinstale dispositivos
+        al_uninstall_mouse();
+        al_uninstall_keyboard();
+
+        // 3) Feche add-ons explicitamente (TTF depende de font)
+        al_shutdown_primitives_addon();
+        al_shutdown_ttf_addon();
+        al_shutdown_font_addon();
+
+        // 4) Por último, o core
+        al_uninstall_system();
+
+        initialized_ = false;
+    }
+}
+
+void AllegroBackend::ensureBackbuffer(int w, int h)
+{
+    w_ = w;
+    h_ = h;
+    backbuffer_.reset();  // destrói antiga se existir
+    al_set_new_bitmap_flags(ALLEGRO_MEMORY_BITMAP);
+    backbuffer_.reset(al_create_bitmap(w_, h_));
+}
+
+void AllegroBackend::clearBlack()
+{
+    if(!backbuffer_)
+        return;
+    al_set_target_bitmap(backbuffer_.get());
+    al_clear_to_color(colors_.black);
+}
+
+}  // namespace render
+
+-----
+arquivo render/AllegroBackend.hpp:
+// render/AllegroBackend.hpp
+#pragma once
+
+#include <memory>
+#include <vector>
+
+// Precisamos dos headers do Allegro aqui porque o deleter
+// chama as funções al_destroy_*
+#include <allegro5/allegro.h>
+#include <allegro5/allegro_font.h>
+
+#include "core/IRenderBackend.hpp"
+
+struct ALLEGRO_LOCKED_REGION;  // fwd ok
+
+namespace core
+{
+struct RenderModel;
+}
+
+namespace render
+{
+
+struct Palette
+{
+    ALLEGRO_COLOR green{};
+    ALLEGRO_COLOR red{};
+    ALLEGRO_COLOR yellow{};
+    ALLEGRO_COLOR cyan{};
+    ALLEGRO_COLOR white{};
+    ALLEGRO_COLOR black{};
+};
+
+// Deleter único para vários tipos Allegro (extensível)
+struct AllegroDeleter
+{
+    void operator()(ALLEGRO_BITMAP* p) const noexcept
+    {
+        if(p)
+            al_destroy_bitmap(p);
+    }
+    void operator()(ALLEGRO_FONT* p) const noexcept
+    {
+        if(p)
+            al_destroy_font(p);
+    }
+    // Extras, caso use em outros lugares do projeto
+    void operator()(ALLEGRO_DISPLAY* p) const noexcept
+    {
+        if(p)
+            al_destroy_display(p);
+    }
+    void operator()(ALLEGRO_EVENT_QUEUE* p) const noexcept
+    {
+        if(p)
+            al_destroy_event_queue(p);
+    }
+    void operator()(ALLEGRO_TIMER* p) const noexcept
+    {
+        if(p)
+            al_destroy_timer(p);
+    }
+};
+
+// Aliases RAII
+using BitmapUPtr = std::unique_ptr<ALLEGRO_BITMAP, AllegroDeleter>;
+using FontUPtr   = std::unique_ptr<ALLEGRO_FONT, AllegroDeleter>;
+
+class AllegroBackend final : public core::IRenderBackend
+{
+  public:
+    AllegroBackend();
+    ~AllegroBackend() override;
+
+    bool init(void* native_handle, int width, int height) override;
+    void resize(int width, int height) override;
+    void render(const core::RenderModel& model) override;
+    void shutdown() override;
+
+    bool getFrameRGB(std::vector<unsigned char>& outRGB,
+                     int&                        width,
+                     int&                        height) override;
+
+  private:
+    BitmapUPtr backbuffer_{nullptr};  // destrói automaticamente
+    FontUPtr   font_{nullptr};
+    int        w_ = 0, h_ = 0;
+    bool       initialized_ = false;
+
+    Palette colors_;  // <- paleta centralizada
+
+    void ensureBackbuffer(int w, int h);
+    void clearBlack();
+};
+
+}  // namespace render
+
+-----
+arquivo ui/App.cpp:
+// ui/App.cpp
+#include <wx/wx.h>
+
+#include "ui/AppFrame.hpp"
+
+class MyApp : public wxApp
+{
+  public:
+    bool OnInit() override
+    {
+        auto* f = new ui::AppFrame();
+        f->Show(true);
+        return true;
+    }
+};
+
+wxIMPLEMENT_APP(MyApp);
+
+-----
+arquivo ui/AppFrame.hpp:
+// ui/AppFrame.hpp
+#pragma once
+#include <wx/wx.h>
+
+#include "core/BackendFactory.hpp"
+#include "ui/RenderView.hpp"
+
+namespace ui
+{
+class AppFrame : public wxFrame
+{
+  public:
+    AppFrame()
+        : wxFrame(nullptr,
+                  wxID_ANY,
+                  "Bridge: wx + Allegro",
+                  wxDefaultPosition,
+                  wxSize(core::DEFAULT_WIDTH, core::DEFAULT_HEIGHT))
+    {
+        auto* sizer       = new wxBoxSizer(wxVERTICAL);
+        auto* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
+
+        // parent = this (frame)
+        auto* btnRefresh        = new wxButton(this,
+                                        wxID_ANY,
+                                        "Atualizar Lista",
+                                        wxDefaultPosition,
+                                        wxSize(180, -1));
+        auto* btnUpdate         = new wxButton(this,
+                                       wxID_ANY,
+                                       "APT Update",
+                                       wxDefaultPosition,
+                                       wxSize(180, -1));
+        auto* btnUpgrade        = new wxButton(this,
+                                        wxID_ANY,
+                                        "APT Upgrade",
+                                        wxDefaultPosition,
+                                        wxSize(180, -1));
+        auto* btnListUpgradable = new wxButton(
+            this,
+            wxID_ANY,
+            wxString::FromUTF8(u8"Pacotes Atualizáveis"));
+
+        buttonSizer->Add(btnRefresh, 0, wxALL, 5);
+        buttonSizer->Add(btnUpdate, 0, wxALL, 5);
+        buttonSizer->Add(btnUpgrade, 0, wxALL, 5);
+        buttonSizer->Add(btnListUpgradable, 0, wxALL, 5);
+
+        auto backend =
+            core::makeBackend(core::RenderBackendType::Allegro);
+        auto* view = new ui::RenderView(
+            this, std::move(backend));  // parent = frame
+
+        sizer->Add(buttonSizer, 0, wxALL | wxEXPAND, 5);
+        sizer->Add(view, 1, wxEXPAND | wxALL, 8);
+        SetSizerAndFit(sizer);
+        Centre();
+    }
+};
+}  // namespace ui
+
+-----
+arquivo ui/RenderView.hpp:
+// ui/RenderView.hpp
+#pragma once
+#include <wx/wx.h>
+
+#include <cstring>
+#include <memory>
+#include <vector>
+
+#include "core/IRenderBackend.hpp"
+#include "core/RenderModel.hpp"
+
+namespace ui
+{
+
+class RenderView : public wxPanel
+{
+  public:
+    explicit RenderView(
+        wxWindow*                             parent,
+        std::unique_ptr<core::IRenderBackend> backend)
+        : wxPanel(
+              parent,
+              wxID_ANY,
+              wxDefaultPosition,
+              wxSize(core::DEFAULT_WIDTH, core::DEFAULT_HEIGHT)),
+          backend_(std::move(backend))
+    {
+        SetBackgroundStyle(wxBG_STYLE_PAINT);
+        Bind(wxEVT_PAINT, &RenderView::OnPaint, this);
+        Bind(wxEVT_ERASE_BACKGROUND,
+             [](wxEraseEvent&) { /* evita clear do wx */ });
+        Bind(wxEVT_SIZE, &RenderView::OnResize, this);
+        Bind(wxEVT_MOTION, &RenderView::OnMouseMove, this);
+        Bind(wxEVT_CHAR_HOOK, &RenderView::OnCharHook, this);
+
+        model_.width  = GetSize().x;
+        model_.height = GetSize().y;
+
+        backend_->init(
+            /*native_handle*/ nullptr, model_.width, model_.height);
+    }
+
+    ~RenderView() override
+    {
+        if(backend_)
+            backend_->shutdown();
+    }
+
+  private:
+    std::unique_ptr<core::IRenderBackend> backend_;
+    core::RenderModel                     model_;
+    std::vector<unsigned char>
+        frameRGB_;  // buffer temporário para wxImage
+
+    void OnResize(wxSizeEvent& e)
+    {
+        const auto sz = e.GetSize();
+        model_.width  = std::max(1, sz.GetWidth());
+        model_.height = std::max(1, sz.GetHeight());
+        backend_->resize(model_.width, model_.height);
+        Refresh(false);
+        e.Skip();
+    }
+
+    void OnMouseMove(wxMouseEvent& e)
+    {
+        model_.mouse_x_px = e.GetX();
+        model_.mouse_y_px = e.GetY();
+        Refresh(false);
+    }
+
+    void OnCharHook(wxKeyEvent& e)
+    {
+        const int code = e.GetKeyCode();
+        if(code == WXK_ESCAPE)
+        {
+            if(auto* tlw = wxGetTopLevelParent(this))
+                tlw->Close(false);
+            return;
+        }
+        else if(code == WXK_SPACE)
+        {
+            if(model_.points_stored < 2)
+            {
+                core::armazenar_posicao_mouse(model_.mouse_x_px,
+                                              model_.mouse_y_px,
+                                              model_.width,
+                                              model_.height,
+                                              model_.pos_km_x,
+                                              model_.pos_km_y,
+                                              model_.points_stored);
+                model_.points_stored++;
+            }
+            else
+            {
+                model_.points_stored = 0;
+                model_.resetar_posicoes();
+            }
+            Refresh(false);
+            return;
+        }
+        e.Skip();
+    }
+
+    void OnPaint(wxPaintEvent&)
+    {
+        wxPaintDC dc(this);
+        if(!backend_)
+            return;
+
+        backend_->render(model_);
+
+        int w = 0, h = 0;
+        if(!backend_->getFrameRGB(frameRGB_, w, h))
+            return;
+
+        wxImage img(w, h);
+        std::memcpy(
+            img.GetData(), frameRGB_.data(), frameRGB_.size());
+        wxBitmap bmp(img);
+        dc.DrawBitmap(bmp, 0, 0, false);
+    }
+};
+
+}  // namespace ui
+
+-----
+arquivo core/BackendFactory.cpp:
+// core/BackendFactory.cpp
+#include "core/BackendFactory.hpp"
+#include "render/AllegroBackend.hpp"
+#include <memory>
+
+namespace core
+{
+std::unique_ptr<IRenderBackend> makeBackend(RenderBackendType type)
+{
+    switch(type)
+    {
+    case RenderBackendType::Allegro:
+    default:
+        return std::make_unique<render::AllegroBackend>();
+    }
+}
+}  // namespace core
+
+-----
+arquivo core/BackendFactory.hpp:
+// core/BackendFactory.hpp
+#pragma once
+#include <memory>
+#include "IRenderBackend.hpp"
+
+namespace core
+{
+
+enum class RenderBackendType
+{
+    Allegro
+};
+
+std::unique_ptr<IRenderBackend> makeBackend(RenderBackendType type);
+
+}  // namespace core
+
+-----
+arquivo core/IRenderBackend.hpp:
+// core/IRenderBackend.hpp
+#pragma once
+#include <vector>
+
+namespace core
+{
+
+struct RenderModel;
+
+// Interface Bridge — Implementor
+// Don't touch this!
+// clang-format off
+class IRenderBackend
+{
+public:
+    virtual ~IRenderBackend() = default;
+
+    // Pode ignorar native_handle se o backend for offscreen
+    virtual bool init(void* native_handle,
+                      int width,
+                      int height) = 0;
+
+    virtual void resize(int width,
+                        int height) = 0;
+
+    virtual void render(const RenderModel& model) = 0;
+    virtual void shutdown() = 0;
+
+    // Entrega os pixels como RGB contíguo (width*height*3)
+    // Retorna true se preencheu 'outRGB' (w*h*3)
+    virtual bool getFrameRGB(std::vector<unsigned char>& outRGB,
+                             int& width,
+                             int& height) = 0;
+};
+// clang-format on
+// Carry on formatting
+
+}  // namespace core
+
+-----
+arquivo core/RenderModel.hpp:
+// core/RenderModel.hpp
+#pragma once
+#include <cmath>
+
+namespace core
+{
+
+constexpr float X_KM_MAX = 1920.0f;
+constexpr float Y_KM_MAX = 1080.0f;
+
+constexpr int DEFAULT_WIDTH  = 1280;
+constexpr int DEFAULT_HEIGHT = 720;
+
+struct RenderModel
+{
+    // estado de interação
+    float mouse_x_px = 0.0f;
+    float mouse_y_px = 0.0f;
+    int   width      = 1280;
+    int   height     = 720;
+
+    // dois pontos em "km"
+    float pos_km_x[2]   = {0.0f, 0.0f};
+    float pos_km_y[2]   = {0.0f, 0.0f};
+    int   points_stored = 0;
+
+    void resetar_posicoes()
+    {
+        pos_km_x[0] = pos_km_y[0] = 0;
+        pos_km_x[1] = pos_km_y[1] = 0;
+    }
+};
+
+// ---- Funções do mouse_pos.c (portadas p/ C++) ----
+inline void armazenar_posicao_mouse(float  mouse_x,
+                                    float  mouse_y,
+                                    int    screen_width,
+                                    int    screen_height,
+                                    float* pos_km_x,
+                                    float* pos_km_y,
+                                    int    index)
+{
+    float km_x = (mouse_x / screen_width) * X_KM_MAX;
+    float km_y = Y_KM_MAX - ((mouse_y / screen_height) * Y_KM_MAX);
+    pos_km_x[index] = km_x;
+    pos_km_y[index] = km_y;
+}
+
+inline void converter_km_para_pixel(float  km_x,
+                                    float  km_y,
+                                    int    screen_width,
+                                    int    screen_height,
+                                    float* px,
+                                    float* py)
+{
+    *px = (km_x / X_KM_MAX) * screen_width;
+    *py = screen_height - (km_y / Y_KM_MAX) * screen_height;
+}
+
+inline float
+calcular_modulo_vetor(float x0, float y0, float x1, float y1)
+{
+    float dx = x1 - x0;
+    float dy = y1 - y0;
+    return std::sqrt(dx * dx + dy * dy);
+}
+
+}  // namespace core
+
+-----

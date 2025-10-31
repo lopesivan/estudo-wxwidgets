@@ -41,7 +41,7 @@ option(USE_RPATH "Usar RPATH para libs locais" ON)
 
 # Versão e configurações do wxWidgets
 set(WX_VERSION
-    "3.2.4"
+    "3.3.1"
     CACHE STRING "Versão do wxWidgets")
 set(WX_OS
     "linux"
@@ -87,7 +87,7 @@ endif()
 # ============================================================================
 
 # Opções do wx-config
-set(WX_CONFIG_OPTS "--unicode=yes --static=no --toolkit=gtk3 --version=3.2")
+set(WX_CONFIG_OPTS "--static=no")
 
 # Obter CXXFLAGS do wx-config
 execute_process(

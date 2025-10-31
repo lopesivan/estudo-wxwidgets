@@ -1,4 +1,5 @@
-Aqui está um CMakeLists.txt equivalente ao seu Makefile:## Como usar:
+Aqui está um CMakeLists.txt equivalente ao seu Makefile:##
+Como usar:
 
 **Build básico:**
 ```bash
@@ -49,3 +50,51 @@ rm -rf build
 - `USE_RPATH`: ON/OFF para RPATH
 - `CMAKE_BUILD_TYPE`: Debug ou Release
 - `MINGW_DLL_PATH`: caminho das DLLs do MinGW
+
+
+Vou ajustar o CMakeLists.txt para usar o compilador
+cross-compile do MinGW:Agora o CMake está configurado para
+usar o compilador MinGW cross-compile.
+
+## Como usar:
+
+**Build:**
+```bash
+mkdir build
+cd build
+cmake ..
+cmake --build .
+```
+
+**Ou com toolchain file separado (método alternativo mais limpo):**
+
+Crie um arquivo `mingw-w64-toolchain.cmake`:
+
+```cmake
+set(CMAKE_SYSTEM_NAME Windows)
+set(CMAKE_C_COMPILER /bin/x86_64-w64-mingw32-gcc)
+set(CMAKE_CXX_COMPILER /bin/x86_64-w64-mingw32-g++)
+set(CMAKE_RC_COMPILER /bin/x86_64-w64-mingw32-windres)
+
+set(CMAKE_FIND_ROOT_PATH /usr/x86_64-w64-mingw32)
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+```
+
+E então use:
+```bash
+cmake -DCMAKE_TOOLCHAIN_FILE=../mingw-w64-toolchain.cmake ..
+```
+
+## Verificar se está usando o compilador correto:
+
+```bash
+cd build
+cmake .. --debug-output | grep CXX_COMPILER
+```
+
+Deve mostrar `/bin/x86_64-w64-mingw32-g++`
+
+Prefere que eu crie também o arquivo de toolchain separado
+como artifact?

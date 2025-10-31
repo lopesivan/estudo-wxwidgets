@@ -4,6 +4,10 @@ project(WxWidgetsApp)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Opções de build para debug
+set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # =========================
 # Configuração do wxWidgets
 # =========================

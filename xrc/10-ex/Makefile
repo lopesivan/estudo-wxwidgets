@@ -34,11 +34,8 @@ WX_CONFIG      ?= $(WX_INSTALL_DIR)/bin/wx-config
 WXRC           ?= $(WX_INSTALL_DIR)/bin/wxrc
 
 # Opções do wx-config
-WX_TOOLKIT     ?= gtk3
-WX_UNICODE     ?= yes
 WX_STATIC      ?= no
-WX_VERSION     ?= 3.2
-WX_CONFIG_OPT  := --unicode=$(WX_UNICODE) --static=$(WX_STATIC) --toolkit=$(WX_TOOLKIT) --version=$(WX_VERSION)
+WX_CONFIG_OPT  := --static=$(WX_STATIC)
 
 # =========================
 # Toolchain e flags

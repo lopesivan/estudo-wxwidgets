@@ -55,8 +55,13 @@ set(WARNINGS
 # =========================
 # Configuração do compilador
 # =========================
+# Padrões do C++
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Opções de build para debug
+set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Diretório de saída
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR})

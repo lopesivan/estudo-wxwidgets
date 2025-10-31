@@ -6,7 +6,7 @@ DEPS       := $(OBJS:.o=.d)
 # =========================
 # Configuração do wxWidgets
 # =========================
-V              ?= 3.2.4
+V              ?= 3.3.1
 OS             ?= linux
 WX_BASE_DIR    ?= $(HOME)/wx
 WX_SRC_DIR     ?= $(WX_BASE_DIR)/wxWidgets-$(V)-$(OS)
@@ -17,11 +17,8 @@ WX_LIB_PATH    ?= $(WX_INSTALL_DIR)/lib
 WX_CONFIG      ?= $(WX_INSTALL_DIR)/bin/wx-config
 
 # Opções do wx-config (ajuste toolkit/unicode/static se necessário)
-WX_TOOLKIT     ?= gtk3
-WX_UNICODE     ?= yes
 WX_STATIC      ?= no
-WX_VERSION     ?= 3.2
-WX_CONFIG_OPT  := --unicode=$(WX_UNICODE) --static=$(WX_STATIC) --toolkit=$(WX_TOOLKIT) --version=$(WX_VERSION)
+WX_CONFIG_OPT  := --static=$(WX_STATIC)
 
 # =========================
 # Toolchain e flags

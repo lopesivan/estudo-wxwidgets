@@ -14,7 +14,7 @@ DEPS          := $(OBJS:.o=.d)
 # =========================
 # Configuração do wxWidgets
 # =========================
-V             ?= 3.2.4
+V             ?= 3.3.1
 WX_BASE_DIR   ?= $(HOME)/wx
 WX_SRC_DIR    ?= $(WX_BASE_DIR)/wxWidgets-$(V)-linux
 WX_INSTALL_DIR?= $(WX_BASE_DIR)/linux-wx-$(V)
@@ -24,11 +24,8 @@ WX_LIB_PATH   ?= $(WX_INSTALL_DIR)/lib
 WX_CONFIG     ?= $(WX_INSTALL_DIR)/bin/wx-config
 
 # Opções do wx-config (ajuste toolkit/unicode/static se necessário)
-WX_TOOLKIT    ?= gtk3
-WX_UNICODE    ?= yes
 WX_STATIC     ?= no
-WX_VERSION    ?= 3.2
-WX_CONFIG_OPT := --unicode=$(WX_UNICODE) --static=$(WX_STATIC) --toolkit=$(WX_TOOLKIT) --version=$(WX_VERSION)
+WX_CONFIG_OPT := --static=$(WX_STATIC)
 
 # =========================
 # Toolchain e flags
@@ -90,18 +87,18 @@ prep:
 # Executar o programa
 run: all
 	@echo "  RUN     $(BIN_DIR)/$(PROGRAM)"
-	@$(BIN_DIR)/$(PROGRAM)
+	@LD_LIBRARY_PATH="${HOME}/wx/linux-wx-$(V)/lib" $(BIN_DIR)/$(PROGRAM)
 
 # Info útil para depuração
 info:
-	@echo "PROGRAM      = $(PROGRAM)"
-	@echo "SRCS         = $(SRCS)"
-	@echo "OBJS         = $(OBJS)"
-	@echo "CXX          = $(CXX)"
-	@echo "WX_CONFIG    = $(WX_CONFIG)"
-	@echo "CXXFLAGS     = $(CXXFLAGS)"
-	@echo "LDFLAGS      = $(LDFLAGS)"
-	@echo "LDLIBS       = $(LDLIBS)"
+	@echo "PROGRAM    = $(PROGRAM)"
+	@echo "SRCS       = $(SRCS)"
+	@echo "OBJS       = $(OBJS)"
+	@echo "CXX        = $(CXX)"
+	@echo "WX_CONFIG  = $(WX_CONFIG)"
+	@echo "CXXFLAGS   = $(CXXFLAGS)"
+	@echo "LDFLAGS    = $(LDFLAGS)"
+	@echo "LDLIBS     = $(LDLIBS)"
 
 # Limpeza
 clean:

@@ -33,7 +33,7 @@ option(USE_RPATH "Usar RPATH para libs locais" ON)
 
 # Versão e configurações do wxWidgets
 set(WX_VERSION
-    "3.2.4"
+    "3.3.1"
     CACHE STRING "Versão do wxWidgets")
 set(WX_OS
     "linux"

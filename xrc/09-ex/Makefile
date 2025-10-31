@@ -24,7 +24,7 @@ DEPS        := $(OBJS:.o=.d)
 # wxWidgets (LOCAL)
 # =========================
 # Ajuste estes paths para o seu build local:
-V              ?= 3.2.4
+V              ?= 3.3.1
 OS             ?= linux
 WX_BASE_DIR    ?= $(HOME)/wx
 WX_INSTALL_DIR ?= $(WX_BASE_DIR)/$(OS)-wx-$(V)

@@ -9,7 +9,7 @@ set(WX_BIN_DIR "${WX_PREFIX}/bin/gcc_x64_dll")
 # MUITO IMPORTANTE: use o modo CONFIG (não o FindwxWidgets antigo)
 find_package(wxWidgets CONFIG REQUIRED COMPONENTS core base)
 
-add_executable(wx_hello WIN32 main.cpp)
+add_executable(wx_hello WIN32 main.cpp main.exe.manifest)
 target_link_libraries(wx_hello PRIVATE wx::core wx::base)
 
 add_custom_target(

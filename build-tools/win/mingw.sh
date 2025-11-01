@@ -33,5 +33,6 @@ cmake -S . \
     -D CMAKE_INSTALL_PREFIX="C:/Users/ivan/source/repos/SDKs/MinGW64/wx-3.3.1-gcc-x64" ..
 
 /c/mingw64/bin/mingw32-make.exe
+/c/mingw64/bin/mingw32-make.exe install
 
 exit 0

@@ -18,3 +18,5 @@ add_custom_target(
           $<TARGET_FILE:wx_hello>
   DEPENDS wx_hello
   WORKING_DIRECTORY $<TARGET_FILE_DIR:wx_hello>)
+
+# eof

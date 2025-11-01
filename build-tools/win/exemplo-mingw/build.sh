@@ -28,3 +28,4 @@ cmake -S . -B $_d -G "MinGW Makefiles" \
 
 /c/mingw64/bin/mingw32-make.exe -C $_d
 
+exit 0

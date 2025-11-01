@@ -3,8 +3,6 @@
 # if exist path `build' then remove.
 _d=build-mingw64
 test -d $_d && rm -rf $_d
-mkdir $_d
-cd $_d || exit
 
 MINGW64="/c/mingw64"
 

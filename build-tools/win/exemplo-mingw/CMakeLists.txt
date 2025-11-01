@@ -3,8 +3,8 @@ project(wx_hello LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(WX_PREFIX "C:/Users/ivan/source/repos/SDKs/MinGW64/wxWidgets-3.3.1")
-set(WX_BIN_DIR "${WX_PREFIX}/bin")
+set(WX_PREFIX "C:/Users/ivan/source/repos/SDKs/MinGW64/wx-3.3.1-gcc-x64")
+set(WX_BIN_DIR "${WX_PREFIX}/bin/gcc_x64_dll")
 
 # MUITO IMPORTANTE: use o modo CONFIG (não o FindwxWidgets antigo)
 find_package(wxWidgets CONFIG REQUIRED COMPONENTS core base)

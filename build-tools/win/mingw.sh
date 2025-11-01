@@ -3,8 +3,6 @@
 # if exist path `build' then remove.
 _d=build-mingw64
 test -d $_d && rm -rf $_d
-mkdir $_d
-cd $_d || exit
 
 MINGW64="/c/mingw64"
 
@@ -18,7 +16,7 @@ echo "🛠 Versão:"
 gcc --version
 echo ""
 
-cmake -S . \
+cmake -S . -B build-mingw64 \
     -G "MinGW Makefiles" \
     -D CMAKE_BUILD_TYPE=Release \
     -D wxBUILD_SHARED=ON \
@@ -32,7 +30,7 @@ cmake -S . \
     -D CMAKE_CXX_COMPILER="C:/mingw64/bin/g++.exe" \
     -D CMAKE_INSTALL_PREFIX="C:/Users/ivan/source/repos/SDKs/MinGW64/wx-3.3.1-gcc-x64" ..
 
-/c/mingw64/bin/mingw32-make.exe
-/c/mingw64/bin/mingw32-make.exe install
+/c/mingw64/bin/mingw32-make.exe -C build-mingw64
+/c/mingw64/bin/mingw32-make.exe -C build-mingw64 install
 
 exit 0

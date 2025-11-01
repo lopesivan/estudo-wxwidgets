@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
-
 project(wx_transforms_tutorial_core LANGUAGES CXX)
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -12,23 +10,24 @@ endif()
 
 set(wxWidgets_USE_STATIC 1)
 
-find_package(wxWidgets REQUIRED xml core base)
+# Se wxWidgets já foi encontrado no modo customizado, não precisa find_package
+if(NOT wxWidgets_FOUND)
+    find_package(wxWidgets REQUIRED xml core base)
+    include(${wxWidgets_USE_FILE})
+endif()
 
 set(SRCS main.cpp canvas/drawingcanvas.cpp canvas/objectspace.cpp canvas/selectionbox.cpp drawingdocument.cpp drawingview.cpp)
 
-include(${wxWidgets_USE_FILE})
-
 if(APPLE)
-    # create bundle on apple compiles
     add_executable(main MACOSX_BUNDLE ${SRCS})
-
-    # Set a custom plist file for the app bundle - needed for Mac OS Retina display
     set_target_properties(main PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
 else()
-    # the WIN32 is needed for Windows in order for it to look for WinMain
-    # instead of the main function. This is ignored on other systems,
-    # so it works on all platforms
     add_executable(main WIN32 ${SRCS} main.exe.manifest)
 endif()
 
 target_link_libraries(main PRIVATE ${wxWidgets_LIBRARIES})
+
+# Se usando wxWidgets customizado, adicionar flags manualmente
+if(DEFINED wxWidgets_CXX_FLAGS)
+    target_compile_options(main PRIVATE ${wxWidgets_CXX_FLAGS})
+endif()

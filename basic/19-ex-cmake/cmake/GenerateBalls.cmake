@@ -48,16 +48,22 @@ function(gen_ball name color size_px)
 
   set(_out "${CMAKE_CURRENT_BINARY_DIR}/${name}.png")
 
-  # Raio = size/2 - 4 (deixa folga nas bordas); centro = size/2
+  # Raio = size/2 - 4; centro = size/2  (avaliados como INTEIROS)
   math(EXPR _radius "(${size_px} / 2) - 4")
-  set(_center "${size_px}/2")
+  math(EXPR _center "${size_px} / 2")
+  # Ponto na circunferência: mesmo x do centro e y deslocado pelo raio
+  math(EXPR _x1 "${_center}")
+  math(EXPR _y1 "${_center} - ${_radius}")
 
   add_custom_command(
     OUTPUT "${_out}"
     COMMAND
-      ${_IM_CMD} -size ${size_px}x${size_px} xc:none -fill "rgb(${color})"
-      -stroke "rgb(${color})" -strokewidth 1 -draw
-      "circle ${_center},${_center} ${_center},4" "${_out}"
+      ${_IM_CMD}
+      -size ${size_px}x${size_px} xc:none
+      -fill "rgb(${color})"
+      -stroke "rgb(${color})" -strokewidth 1
+      -draw "circle ${_center},${_center} ${_x1},${_y1}"
+      "${_out}"
     COMMENT "Gerando ${name}.png (${size_px}px, rgb(${color}))"
     VERBATIM)
 
@@ -114,3 +120,4 @@ function(setup_ball_assets_target target)
   # Instala junto do app (opcional)
   install(FILES ${_imgs} DESTINATION .)
 endfunction()
+

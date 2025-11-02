@@ -8,8 +8,7 @@ cmake -S .. -B build-msvc-x64 -G "Visual Studio 17 2022" -A x64 ^
   -D wxBUILD_TOOLKIT=msw ^
   -D wxBUILD_SHARED=ON ^
   -D wxBUILD_USE_STATIC_RUNTIME=OFF ^
-  -D wxUSE_WEBVIEW=OFF ^
-  -D wxUSE_WEBVIEW_EDGE=OFF ^
+  -D wxUSE_WEBVIEW=OFF -D wxUSE_WEBVIEW_EDGE=OFF ^
   -D wxWidgets_DIR="%WX_DIR%" ^
   -D CMAKE_PROJECT_TOP_LEVEL_INCLUDES:FILEPATH="%~dp0run.cmake"
 

@@ -210,3 +210,111 @@ As correções garantem:
 - ✅ Código portável
 
 Agora deve compilar sem erros! 🎉
+
+# Script para Gerar Bolas Coloridas em PNG
+
+Vou criar um script bash que gera várias bolas coloridas usando ImageMagick:## 🎨 Versão com Gradiente e Sombra (Mais Realista)## 🎯 Versão Simplificada com Tamanhos Variados## 🚀 Como Usar
+
+### 1. Script Básico (Bolas Sólidas)
+```bash
+# Torne executável
+chmod +x generate_balls.sh
+
+# Execute
+./generate_balls.sh
+```
+
+**Gera:** `ball_red.png`, `ball_blue.png`, `ball_green.png`, etc.
+
+### 2. Script Realista (Com Gradiente e Sombra)
+```bash
+chmod +x generate_balls_realistic.sh
+./generate_balls_realistic.sh
+```
+
+**Gera:** Bolas com efeito 3D, sombra e brilho
+
+### 3. Script Multi-Tamanho
+```bash
+chmod +x generate_balls_multi_size.sh
+./generate_balls_multi_size.sh
+```
+
+**Gera:** `ball_red_64.png`, `ball_red_128.png`, `ball_red_256.png`, etc.
+
+## 📦 Atualizar CMakeLists.txt para Copiar Todas
+
+Adicione ao seu CMakeLists.txt:
+
+```cmake
+# =========================
+# Copiar recursos (imagens, etc)
+# =========================
+# Copiar todas as imagens PNG
+file(GLOB PNG_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.png")
+
+if(PNG_FILES)
+  foreach(PNG_FILE ${PNG_FILES})
+    get_filename_component(PNG_NAME ${PNG_FILE} NAME)
+    configure_file(
+      "${PNG_FILE}"
+      "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${PNG_NAME}"
+      COPYONLY)
+  endforeach()
+  list(LENGTH PNG_FILES PNG_COUNT)
+  message(STATUS "${PNG_COUNT} arquivos PNG serão copiados para bin/")
+else()
+  message(WARNING "Nenhum arquivo PNG encontrado")
+endif()
+```
+
+## 🎨 Cores Disponíveis
+
+| Nome | RGB | Visualização |
+|------|-----|--------------|
+| red | 255,0,0 | 🔴 Vermelho |
+| green | 0,200,0 | 🟢 Verde |
+| blue | 30,144,255 | 🔵 Azul |
+| yellow | 255,220,0 | 🟡 Amarelo |
+| orange | 255,140,0 | 🟠 Laranja |
+| purple | 147,51,234 | 🟣 Roxo |
+| pink | 255,105,180 | 💗 Rosa |
+| cyan | 0,206,209 | 🩵 Ciano |
+
+## 💡 Personalização
+
+### Adicionar Nova Cor
+```bash
+# No script, adicione à lista COLORS:
+["seu_nome"]="R,G,B"
+```
+
+### Mudar Tamanho
+```bash
+# Altere no início do script:
+SIZE=256  # ao invés de 128
+```
+
+### Ajustar Espessura da Borda
+```bash
+-strokewidth 3  # ao invés de 1
+```
+
+## ✅ Teste Rápido
+
+```bash
+# Instale ImageMagick se necessário
+sudo apt-get install imagemagick
+
+# Gere as bolas
+./generate_balls.sh
+
+# Verifique
+ls -lh ball_*.png
+
+# Visualize (se tiver display)
+display ball_red.png
+```
+
+Agora você tem scripts prontos para gerar bolas coloridas! Qual versão você prefere usar? 🎨
+

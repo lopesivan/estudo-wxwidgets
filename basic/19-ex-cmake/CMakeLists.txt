@@ -128,24 +128,17 @@ endif()
 
 add_executable(${PROGRAM} ${SRCS})
 
+# Inclui o módulo e gera a "ball.png" padrão
+include(cmake/GenerateBalls.cmake)
+# Personalize por linha de comando, ex:
+# -DBALL_COLOR=255,0,0 -DBALL_SIZE_PX=192
+generate_default_ball()
+
 # Flags de link
 target_link_libraries(${PROGRAM} ${WX_LDLIBS})
 
-# =========================
-# Copiar recursos (imagens, etc)
-# =========================
-# Inclui o módulo e gera a "ball.png" padrão
-include(cmake/GenerateBalls.cmake)
-# Método A
-# Personalize por linha de comando,
-# ex: -DBALL_COLOR=255,0,0 -DBALL_SIZE_PX=192
-
-# Método B
-# gen_ball(ball_blue  "30,144,255" 128)
-# gen_ball(ball_red   "220,20,60" 128)
-# gen_ball(ball_green "46,139,87" 128)
-# Você pode ainda chamar generate_default_ball() se quiser "ball.png" também
-generate_default_ball()
+# Copia ball.png para a pasta do executável e instala
+setup_ball_assets_target(${PROGRAM})
 
 # =========================
 # Targets customizados

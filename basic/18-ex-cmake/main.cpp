@@ -1,17 +1,15 @@
 // g++ main.cpp `wx-config --cxxflags --libs std,adv,core,base` -O2
 // -o app
+#include <wx/wx.h>
 #include <wx/dcbuffer.h>
 #include <wx/graphics.h>
 #include <wx/image.h>
-#include <wx/wx.h>
-#include <wx/dcgraph.h>   // wxGCDC
-#include <wx/dcmemory.h>  // wxMemoryDC
 
-#include <cmath>
-#include <memory>
-#include <optional>
-#include <unordered_map>
 #include <vector>
+#include <memory>
+#include <cmath>
+#include <unordered_map>
+#include <optional>
 
 // -------------------------------------------
 // Modelo de dados da bola
@@ -58,23 +56,18 @@ class SolidCirclePainter final : public IBallPainter
         }
         else
         {
-            // Antialias usando wxGCDC sobre o wxAutoBufferedPaintDC
-            // (que é um wxMemoryDC)
-            wxMemoryDC& memdc = static_cast<wxMemoryDC&>(
-                dc);  // cast seguro neste contexto
-            wxGCDC gcdc(memdc);
-
-            gcdc.SetBrush(wxBrush(b.color));
-            gcdc.SetPen(wxPen(b.color));
-
-            const int x =
-                static_cast<int>(std::lround(b.x - b.radius));
-            const int y =
-                static_cast<int>(std::lround(b.y - b.radius));
-            const int d = 2 * b.radius;
-
-            gcdc.DrawEllipse(x, y, d, d);
-            // wxGCDC é stack-allocated, não precisa deletar
+            // Antialias com GraphicsContext
+            auto gc = wxGraphicsContext::Create(dc);
+            if(gc)
+            {
+                gc->SetAntialiasMode(wxANTIALIAS_DEFAULT);
+                gc->SetBrush(wxBrush(b.color));
+                gc->SetPen(wxPen(b.color));
+                const double d = 2.0 * b.radius;
+                gc->DrawEllipse(
+                    b.x - b.radius, b.y - b.radius, d, d);
+                delete gc;
+            }
         }
     }
 
@@ -225,7 +218,7 @@ class BouncingBallPanel : public wxPanel
         Bind(wxEVT_ERASE_BACKGROUND,
              [](wxEraseEvent&) { /* no-op */ });
 
-        SetCanFocus(true);
+        SetFocusable(true);
         Bind(wxEVT_KEY_DOWN, &BouncingBallPanel::OnKeyDown, this);
     }
 

@@ -134,8 +134,27 @@ target_link_libraries(${PROGRAM} ${WX_LDLIBS})
 # =========================
 # Copiar recursos (imagens, etc)
 # =========================
-set(RESOURCES ball.png
-              # adicione outros recursos aqui config.yaml outro.png
+set(RESOURCES
+    ball_blue.png
+    ball_brown.png
+    ball_coral.png
+    ball_cyan.png
+    ball_gold.png
+    ball_gray.png
+    ball_green.png
+    ball_indigo.png
+    ball_lime.png
+    ball_magenta.png
+    ball_orange.png
+    ball_pink.png
+    ball.png
+    ball_purple.png
+    ball_red.png
+    ball_silver.png
+    ball_turquoise.png
+    ball_violet.png
+    ball_yellow.png
+    # adicione outros recursos aqui config.yaml outro.png
 )
 
 foreach(RESOURCE ${RESOURCES})

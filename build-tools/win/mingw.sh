@@ -21,10 +21,8 @@ cmake -S . -B build-mingw64 \
     -D CMAKE_BUILD_TYPE=Release \
     -D wxBUILD_SHARED=ON \
     -D wxBUILD_USE_STATIC_RUNTIME=OFF \
-    -D wxBUILD_SAMPLES=OFF \
-    -D wxBUILD_TESTS=OFF \
-    -D wxUSE_WEBVIEW=OFF \
-    -D wxUSE_WEBVIEW_EDGE=OFF \
+    -D wxBUILD_SAMPLES=OFF -D wxBUILD_DEMOS=OFF -D wxBUILD_TESTS=OFF \
+    -D wxUSE_WEBVIEW=OFF -D wxUSE_WEBVIEW_EDGE=OFF \
     -D CMAKE_MAKE_PROGRAM="C:/mingw64/bin/mingw32-make.exe" \
     -D CMAKE_C_COMPILER="C:/mingw64/bin/gcc.exe" \
     -D CMAKE_CXX_COMPILER="C:/mingw64/bin/g++.exe" \

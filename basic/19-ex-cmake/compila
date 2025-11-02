@@ -1,3 +1,4 @@
 cmake -S . -B build -DBALL_COLOR=255,0,0 -DBALL_SIZE_PX=192
 cmake --build build
 
+cmake --build build --target run

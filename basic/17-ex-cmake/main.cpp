@@ -9,25 +9,46 @@
 
 #include <cmath>
 #include <memory>
+#include <map>
 #include <optional>
 #include <unordered_map>
 #include <vector>
+#include <utility>
 
-// -------------------------------------------
-// Modelo de dados da bola
-// -------------------------------------------
+// ===================== Skins disponíveis (arquivos)
+// =========================
+static const std::vector<wxString> kSkins = {"ball_blue.png",
+                                             "ball_brown.png",
+                                             "ball_coral.png",
+                                             "ball_cyan.png",
+                                             "ball_gold.png",
+                                             "ball_gray.png",
+                                             "ball_green.png",
+                                             "ball_indigo.png",
+                                             "ball_lime.png",
+                                             "ball_magenta.png",
+                                             "ball_orange.png",
+                                             "ball_pink.png",
+                                             "ball.png",  // default
+                                             "ball_purple.png",
+                                             "ball_red.png",
+                                             "ball_silver.png",
+                                             "ball_turquoise.png",
+                                             "ball_violet.png",
+                                             "ball_yellow.png"};
+
+// ============================== Modelo da bola
+// ==============================
 struct Ball
 {
     double   x, y;    // posição (px)
     double   vx, vy;  // velocidade (px/s)
     int      radius;  // raio (px)
-    wxColour color;   // cor “base” (usada por estratégias que
-                      // desenham sólido)
+    wxColour color;   // cor (fallback p/ sólido)
 };
 
-// -------------------------------------------
-// Strategy: interface para “como desenhar a bola”
-// -------------------------------------------
+// ============================ Strategy interface
+// ============================
 class IBallPainter
 {
   public:
@@ -35,9 +56,8 @@ class IBallPainter
     virtual void Draw(wxDC& dc, const Ball& b) = 0;
 };
 
-// -------------------------------------------
-// Estratégia 1: círculo sólido (vetorial, rápido)
-// -------------------------------------------
+// ========================= Painter: círculo sólido
+// ==========================
 class SolidCirclePainter final : public IBallPainter
 {
   public:
@@ -59,22 +79,16 @@ class SolidCirclePainter final : public IBallPainter
         else
         {
             // Antialias usando wxGCDC sobre o wxAutoBufferedPaintDC
-            // (que é um wxMemoryDC)
-            wxMemoryDC& memdc = static_cast<wxMemoryDC&>(
-                dc);  // cast seguro neste contexto
+            // (wxMemoryDC)
+            wxMemoryDC& memdc =
+                static_cast<wxMemoryDC&>(dc);  // seguro aqui
             wxGCDC gcdc(memdc);
-
             gcdc.SetBrush(wxBrush(b.color));
             gcdc.SetPen(wxPen(b.color));
-
-            const int x =
-                static_cast<int>(std::lround(b.x - b.radius));
-            const int y =
-                static_cast<int>(std::lround(b.y - b.radius));
+            const int x = (int)std::lround(b.x - b.radius);
+            const int y = (int)std::lround(b.y - b.radius);
             const int d = 2 * b.radius;
-
             gcdc.DrawEllipse(x, y, d, d);
-            // wxGCDC é stack-allocated, não precisa deletar
         }
     }
 
@@ -82,60 +96,57 @@ class SolidCirclePainter final : public IBallPainter
     bool m_antialias = false;
 };
 
-// -------------------------------------------
-// Estratégia 2: bitmap PNG (com cache por raio)
-// -------------------------------------------
-class BitmapPainter final : public IBallPainter
+// =============================== SpriteCache
+// ================================ Mantém bitmaps originais por
+// nome e versões escaladas por (nome, diâmetro)
+class SpriteCache
 {
   public:
-    // imagePath: caminho do PNG (com alpha). Se não encontrar, faz
-    // fallback no círculo sólido.
-    explicit BitmapPainter(wxString imagePath,
-                           wxColour fallbackColor     = *wxBLUE,
-                           bool     antialiasFallback = true)
-        : m_imagePath(std::move(imagePath)),
-          m_fallbackColor(fallbackColor),
-          m_circleFallback(antialiasFallback)
+    static SpriteCache& Get()
     {
-        // Tenta carregar a imagem uma vez
-        if(m_bitmap.LoadFile(m_imagePath, wxBITMAP_TYPE_PNG) &&
-           m_bitmap.IsOk())
+        static SpriteCache inst;
+        return inst;
+    }
+
+    // Carrega todos os arquivos (silencioso se falhar; mantém só os
+    // OK)
+    void LoadAll(const std::vector<wxString>& files)
+    {
+        for(const auto& f : files)
         {
-            m_loaded = true;
+            if(m_original.count(f))
+                continue;
+            wxBitmap bmp;
+            if(bmp.LoadFile(f, wxBITMAP_TYPE_PNG) && bmp.IsOk())
+            {
+                m_original.emplace(f, bmp);
+            }
         }
     }
 
-    void Draw(wxDC& dc, const Ball& b) override
+    bool Has(const wxString& name) const
     {
-        if(!m_loaded)
-        {
-            // Fallback: desenha círculo se o PNG não existe
-            Ball temp  = b;
-            temp.color = m_fallbackColor;
-            m_circleFallback.Draw(dc, temp);
-            return;
-        }
-
-        // Recupera (ou gera) um bitmap escalado para o diâmetro
-        // desta bola
-        const int diameter = 2 * b.radius;
-        wxBitmap  scaled   = GetScaledBitmap(diameter);
-        const int x = (int)std::lround(b.x) - scaled.GetWidth() / 2;
-        const int y =
-            (int)std::lround(b.y) - scaled.GetHeight() / 2;
-
-        // true => usa alpha
-        dc.DrawBitmap(scaled, x, y, true);
+        return m_original.find(name) != m_original.end();
     }
 
-  private:
-    wxBitmap GetScaledBitmap(int diameter)
+    // Retorna uma referência a bitmap escalado para (name,
+    // diameter)
+    const wxBitmap& GetScaled(const wxString& name, int diameter)
     {
-        auto it = m_cache.find(diameter);
-        if(it != m_cache.end())
+        auto key = std::make_pair(name, diameter);
+        auto it  = m_scaled.find(key);
+        if(it != m_scaled.end())
             return it->second;
 
-        wxImage img = m_bitmap.ConvertToImage();
+        auto it0 = m_original.find(name);
+        if(it0 == m_original.end())
+        {
+            // Se não existir, devolve um placeholder sólido 1x1
+            // transparente
+            static wxBitmap kEmpty(1, 1);
+            return kEmpty;
+        }
+        wxImage img = it0->second.ConvertToImage();
         if(img.IsOk())
         {
             if(img.GetWidth() != diameter ||
@@ -144,27 +155,69 @@ class BitmapPainter final : public IBallPainter
                 img = img.Rescale(
                     diameter, diameter, wxIMAGE_QUALITY_HIGH);
             }
-            wxBitmap scaled(img);
-            m_cache.emplace(diameter, scaled);
-            return scaled;
+            auto [pos, _] = m_scaled.emplace(key, wxBitmap(img));
+            return pos->second;
         }
-        // Se algo der errado, devolve o original
-        return m_bitmap;
+        return it0->second;  // fallback: original
     }
 
-    wxString m_imagePath;
-    bool     m_loaded = false;
-    wxBitmap m_bitmap;
-    std::unordered_map<int, wxBitmap>
-        m_cache;  // cache por diâmetro
+  private:
+    std::unordered_map<wxString, wxBitmap>       m_original;
+    std::map<std::pair<wxString, int>, wxBitmap> m_scaled;
+};
 
+// ============================ Painter: bitmap PNG
+// ===========================
+class BitmapPainter final : public IBallPainter
+{
+  public:
+    explicit BitmapPainter(wxString skinName,
+                           wxColour fallbackColor     = *wxBLUE,
+                           bool     antialiasFallback = true)
+        : m_skin(std::move(skinName)),
+          m_fallbackColor(fallbackColor),
+          m_circleFallback(antialiasFallback)
+    {
+    }
+
+    void SetSkin(const wxString& skinName)
+    {
+        m_skin = skinName;
+    }
+    const wxString& GetSkin() const
+    {
+        return m_skin;
+    }
+
+    void Draw(wxDC& dc, const Ball& b) override
+    {
+        auto& cache = SpriteCache::Get();
+
+        if(!cache.Has(m_skin))
+        {
+            // Fallback: desenha círculo se o PNG não existe
+            Ball tmp  = b;
+            tmp.color = m_fallbackColor;
+            m_circleFallback.Draw(dc, tmp);
+            return;
+        }
+        const int       diameter = 2 * b.radius;
+        const wxBitmap& scaled = cache.GetScaled(m_skin, diameter);
+
+        const int x = (int)std::lround(b.x) - scaled.GetWidth() / 2;
+        const int y =
+            (int)std::lround(b.y) - scaled.GetHeight() / 2;
+        dc.DrawBitmap(scaled, x, y, true);  // alpha=true
+    }
+
+  private:
+    wxString           m_skin;
     wxColour           m_fallbackColor;
     SolidCirclePainter m_circleFallback;
 };
 
-// -------------------------------------------
-// “Factory” simples para escolher a Strategy atual
-// -------------------------------------------
+// ================================ Factory
+// ===================================
 enum class PainterKind
 {
     Circle,
@@ -174,28 +227,25 @@ enum class PainterKind
 class PainterFactory
 {
   public:
-    static std::shared_ptr<IBallPainter> Make(PainterKind kind)
+    static std::shared_ptr<IBallPainter>
+    Make(PainterKind kind, const wxString& skin = "ball.png")
     {
         switch(kind)
         {
         case PainterKind::Circle:
-            return std::make_shared<SolidCirclePainter>(
-                /*antialias=*/true);
+            return std::make_shared<SolidCirclePainter>(true);
         case PainterKind::Bitmap:
-            // Ajuste o caminho do PNG aqui, se preferir outro
+        {
             return std::make_shared<BitmapPainter>(
-                wxString("ball.png"),
-                *wxBLUE,
-                /*antialiasFallback=*/true);
+                skin, *wxBLUE, true);
+        }
         }
         return std::make_shared<SolidCirclePainter>(true);
     }
 };
 
-// -------------------------------------------
-// Painel principal (animação + física + criação de bolas)
-// Cada bola guarda seu próprio “painter” (Strategy).
-// -------------------------------------------
+// ================================ Painel
+// ====================================
 class BouncingBallPanel : public wxPanel
 {
   public:
@@ -203,8 +253,10 @@ class BouncingBallPanel : public wxPanel
                                int       timerIntervalMs = 20)
         : wxPanel(parent, wxID_ANY), m_timer(this),
           m_timerIntervalMs(timerIntervalMs),
-          m_activeKind(PainterKind::Circle),
-          m_activePainter(PainterFactory::Make(m_activeKind))
+          m_activeKind(PainterKind::Bitmap),
+          m_activeSkinIndex(DefaultSkinIndex()),
+          m_activePainter(PainterFactory::Make(
+              m_activeKind, kSkins[m_activeSkinIndex]))
     {
         SetBackgroundStyle(wxBG_STYLE_PAINT);
         SetDoubleBuffered(true);
@@ -222,34 +274,45 @@ class BouncingBallPanel : public wxPanel
         Bind(wxEVT_PAINT, &BouncingBallPanel::OnPaint, this);
         Bind(wxEVT_TIMER, &BouncingBallPanel::OnTimer, this);
         Bind(wxEVT_SIZE, &BouncingBallPanel::OnSize, this);
-        Bind(wxEVT_ERASE_BACKGROUND,
-             [](wxEraseEvent&) { /* no-op */ });
+        Bind(wxEVT_ERASE_BACKGROUND, [](wxEraseEvent&) {});
 
         SetCanFocus(true);
         Bind(wxEVT_KEY_DOWN, &BouncingBallPanel::OnKeyDown, this);
+
+        UpdateStatus();
     }
 
-    // Troca a estratégia ativa (novas bolas usarão esta)
     void SetActivePainter(PainterKind kind)
     {
-        m_activeKind    = kind;
-        m_activePainter = PainterFactory::Make(kind);
-        // Mensagem de status (se houver barra de status no frame)
-        if(auto* frame = wxDynamicCast(GetParent(), wxFrame))
-        {
-            wxString s = (kind == PainterKind::Circle)
-                             ? "Strategy: Circle"
-                             : "Strategy: Bitmap";
-            frame->SetStatusText(s);
-        }
+        m_activeKind = kind;
+        // se bitmap, preserve skin atual
+        if(kind == PainterKind::Bitmap)
+            m_activePainter = PainterFactory::Make(
+                kind, kSkins[m_activeSkinIndex]);
+        else
+            m_activePainter = PainterFactory::Make(kind);
+        UpdateStatus();
     }
 
-    // Cria uma nova bola usando a Strategy ativa
+    void SetActiveSkinIndex(std::size_t idx)
+    {
+        if(idx >= kSkins.size())
+            return;
+        m_activeSkinIndex = idx;
+        if(m_activeKind == PainterKind::Bitmap)
+        {
+            m_activePainter = PainterFactory::Make(
+                PainterKind::Bitmap, kSkins[m_activeSkinIndex]);
+        }
+        UpdateStatus();
+    }
+
     void AddBall(const Ball& bModel)
     {
         BallWrap w;
-        w.ball    = bModel;
-        w.painter = m_activePainter;  // Strategy atual
+        w.ball = bModel;
+        w.painter =
+            m_activePainter;  // strategy (com skin, se bitmap)
         m_balls.push_back(std::move(w));
     }
 
@@ -260,16 +323,21 @@ class BouncingBallPanel : public wxPanel
         std::shared_ptr<IBallPainter> painter;  // Strategy por bola
     };
 
+    static std::size_t DefaultSkinIndex()
+    {
+        for(std::size_t i = 0; i < kSkins.size(); ++i)
+            if(kSkins[i] == "ball.png")
+                return i;
+        return 0;
+    }
+
     void OnPaint(wxPaintEvent&)
     {
         wxAutoBufferedPaintDC dc(this);
         dc.SetBackground(*wxWHITE_BRUSH);
         dc.Clear();
-
         for(const auto& w : m_balls)
-        {
             w.painter->Draw(dc, w.ball);
-        }
     }
 
     void OnTimer(wxTimerEvent&)
@@ -288,7 +356,6 @@ class BouncingBallPanel : public wxPanel
             b.x += b.vx * dt;
             b.y += b.vy * dt;
 
-            // colisão com as bordas
             if(b.x - b.radius < 0.0)
             {
                 b.x  = (double)b.radius;
@@ -310,7 +377,6 @@ class BouncingBallPanel : public wxPanel
                 b.vy = -b.vy;
             }
         }
-
         Refresh(false);
     }
 
@@ -325,59 +391,92 @@ class BouncingBallPanel : public wxPanel
         const int code = e.GetKeyCode();
         switch(code)
         {
-        case WXK_SPACE:  // pausa
+        case WXK_SPACE:
             m_paused = !m_paused;
-            UpdateStatus();
             break;
-
         case '+':
         case WXK_NUMPAD_ADD:
             m_speedScale = std::min(8.0, m_speedScale * 1.25);
-            UpdateStatus();
             break;
-
         case '-':
         case WXK_NUMPAD_SUBTRACT:
             m_speedScale = std::max(0.125, m_speedScale / 1.25);
-            UpdateStatus();
             break;
 
-        case 'C':  // Strategy: círculo
+        case 'C':
         case 'c':
             SetActivePainter(PainterKind::Circle);
             break;
-
-        case 'B':  // Strategy: bitmap
+        case 'B':
         case 'b':
             SetActivePainter(PainterKind::Bitmap);
             break;
 
-        case 'N':  // nova bola usando a Strategy ativa
+        // Troca skin: anterior/próxima
+        case '[':
+        {
+            if(m_activeSkinIndex == 0)
+                m_activeSkinIndex = kSkins.size() - 1;
+            else
+                --m_activeSkinIndex;
+            SetActiveSkinIndex(m_activeSkinIndex);
+        }
+        break;
+        case ']':
+        {
+            m_activeSkinIndex =
+                (m_activeSkinIndex + 1) % kSkins.size();
+            SetActiveSkinIndex(m_activeSkinIndex);
+        }
+        break;
+
+        // N: nova bola com strategy + skin atuais
+        case 'N':
         case 'n':
         {
             Ball nb;
             nb.radius = FromDIP(wxSize(16, 16)).GetWidth();
-            nb.color  = *wxColour(30, 144, 255);  // dodger blue
-            nb.x      = 30.0 + (double)(m_balls.size() * 20);
-            nb.y      = 30.0 + (double)(m_balls.size() * 15);
+            nb.color  = *wxColour(30, 144, 255);
+            nb.x      = 30.0 + (double)(m_balls.size() * 22);
+            nb.y      = 30.0 + (double)(m_balls.size() * 18);
             nb.vx     = 120.0 + 20.0 * (m_balls.size() % 5);
             nb.vy     = 100.0 + 30.0 * (m_balls.size() % 7);
             AddBall(nb);
-            UpdateStatus();
-            break;
         }
+        break;
 
+        // Dígitos 1..0 => escolhe skin por índice (1..10)
         default:
-            e.Skip();
+            if(code >= '0' && code <= '9')
+            {
+                int idx = (code == '0')
+                              ? 9
+                              : (code - '1');  // '0' => 10a posição
+                if((std::size_t)idx < kSkins.size())
+                    SetActiveSkinIndex((std::size_t)idx);
+            }
+            else
+            {
+                e.Skip();
+            }
         }
+        UpdateStatus();
     }
 
     void UpdateStatus()
     {
         if(auto* frame = wxDynamicCast(GetParent(), wxFrame))
         {
+            wxString kind = (m_activeKind == PainterKind::Bitmap)
+                                ? "Bitmap"
+                                : "Circle";
             frame->SetStatusText(wxString::Format(
-                "Paused: %s | Speed: %.3fx | Balls: %zu",
+                "Painter: %s | Skin: %zu/%zu (%s) | Paused: %s | "
+                "Speed: %.2fx | Balls: %zu",
+                kind,
+                m_activeSkinIndex + 1,
+                kSkins.size(),
+                kSkins[m_activeSkinIndex],
                 m_paused ? "Yes" : "No",
                 m_speedScale,
                 m_balls.size()));
@@ -391,14 +490,14 @@ class BouncingBallPanel : public wxPanel
     double  m_speedScale      = 1.0;
 
     PainterKind                   m_activeKind;
+    std::size_t                   m_activeSkinIndex;
     std::shared_ptr<IBallPainter> m_activePainter;
 
     std::vector<BallWrap> m_balls;
 };
 
-// -------------------------------------------
-// Frame / App
-// -------------------------------------------
+// =============================== Frame / App
+// ================================
 class MyFrame : public wxFrame
 {
   public:
@@ -407,12 +506,12 @@ class MyFrame : public wxFrame
                   wxID_ANY,
                   title,
                   wxDefaultPosition,
-                  wxSize(600, 480))
+                  wxSize(700, 520))
     {
         CreateStatusBar();
-        SetStatusText("C: Circle | B: Bitmap | N: New ball | "
-                      "Space: Pause | +/-: Speed");
-
+        SetStatusText("B: Bitmap | C: Circle | [ / ]: Skin "
+                      "prev/next | 1..0: escolher skin | N: nova "
+                      "bola | Space +/-: pausa/velocidade");
         m_panel = new BouncingBallPanel(this);
         m_panel->SetFocus();
     }
@@ -426,11 +525,12 @@ class MyApp : public wxApp
   public:
     bool OnInit() override
     {
-        // Necessário para PNGs
         wxInitAllImageHandlers();
+        // Pré-carrega todas as skins no início:
+        SpriteCache::Get().LoadAll(kSkins);
 
         auto* frame =
-            new MyFrame("wxWidgets - Strategy Pattern para bolas");
+            new MyFrame("wxWidgets - Strategy + Skins PNG (cache)");
         frame->Show(true);
         return true;
     }

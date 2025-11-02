@@ -134,19 +134,18 @@ target_link_libraries(${PROGRAM} ${WX_LDLIBS})
 # =========================
 # Copiar recursos (imagens, etc)
 # =========================
-set(RESOURCES ball.png
-              # adicione outros recursos aqui config.yaml outro.png
-)
+# Inclui o módulo e gera a "ball.png" padrão
+include(cmake/GenerateBalls.cmake)
+# Método A
+# Personalize por linha de comando,
+# ex: -DBALL_COLOR=255,0,0 -DBALL_SIZE_PX=192
 
-foreach(RESOURCE ${RESOURCES})
-  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${RESOURCE}")
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${RESOURCE}"
-                   "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${RESOURCE}" COPYONLY)
-    message(STATUS "Copiando recurso: ${RESOURCE}")
-  else()
-    message(WARNING "Recurso não encontrado: ${RESOURCE}")
-  endif()
-endforeach()
+# Método B
+# gen_ball(ball_blue  "30,144,255" 128)
+# gen_ball(ball_red   "220,20,60" 128)
+# gen_ball(ball_green "46,139,87" 128)
+# Você pode ainda chamar generate_default_ball() se quiser "ball.png" também
+generate_default_ball()
 
 # =========================
 # Targets customizados

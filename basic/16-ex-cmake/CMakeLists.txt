@@ -132,6 +132,19 @@ add_executable(${PROGRAM} ${SRCS})
 target_link_libraries(${PROGRAM} ${WX_LDLIBS})
 
 # =========================
+# Copiar recursos (imagens, etc)
+# =========================
+# Copiar ball.png para o diretório de saída
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ball.png")
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ball.png"
+                 "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ball.png" COPYONLY)
+  message(
+    STATUS "ball.png será copiado para: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+else()
+  message(WARNING "ball.png não encontrado em: ${CMAKE_CURRENT_SOURCE_DIR}")
+endif()
+
+# =========================
 # Targets customizados
 # =========================
 # Target run

@@ -168,7 +168,7 @@ public:
     Bind(wxEVT_SIZE, &BouncingBallPanel::OnSize, this);
     Bind(wxEVT_ERASE_BACKGROUND, [](wxEraseEvent &) { /* no-op */ });
 
-    SetFocusable(true);
+    SetCanFocus(true);
     Bind(wxEVT_KEY_DOWN, &BouncingBallPanel::OnKeyDown, this);
   }
 

@@ -1,0 +1,10 @@
+
+RPATH=1 make
+
+DEBUG=1 make
+
+RPATH=1 DEBUG=1 make
+
+cmake -S . -B build
+cmake --build build -j
+cmake --build build --target run

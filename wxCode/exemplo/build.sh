@@ -8,7 +8,7 @@ mkdir -p build
 mv Makefile build
 cd build
 
-make WX_CONFIG=$(which wx-config) \
+make WX_CONFIG=/home/ivan/wx/linux-wx-3.2.4/bin/wx-config \
     CXXFLAGS="$(wx-config --toolkit=gtk3 --unicode=yes --debug=no --cxxflags)"
 
 exit 0

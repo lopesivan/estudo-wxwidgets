@@ -5,7 +5,7 @@
     <!-- this sample builds always in debug mode; if you have
              compiled wxWidgets in release mode, you'll get link errors! -->
     <debug-info>on</debug-info>
-    <runtime-libs>dynamic</runtime-libs>
+    <runtime-libs>static</runtime-libs>
     <sources>minimal.cpp</sources>
     <wx-lib>core</wx-lib>
     <wx-lib>base</wx-lib>

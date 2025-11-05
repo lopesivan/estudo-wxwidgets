@@ -8,7 +8,7 @@ mkdir -p build
 mv Makefile build
 cd build
 
-make WX_CONFIG=/home/ivan/wx/windows-wx-3.3.1/bin/wx-config \
-    CXXFLAGS="$(wx-config --debug=no --cxxflags)"
+make WX_CONFIG=/home/ivan/wx/windows-wx-3.2.4/bin/wx-config \
+    CXXFLAGS="$(wx-config --toolkit=gtk3 --unicode=yes --debug=no --cxxflags)"
 
 exit 0

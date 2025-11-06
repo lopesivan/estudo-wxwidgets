@@ -63,7 +63,7 @@ else
 endif
 
 # Compose final
-CXXFLAGS      += $(WX_CXXFLAGS) $(WARNINGS)
+CXXFLAGS      += -std=c++20 $(WX_CXXFLAGS) $(WARNINGS)
 LDLIBS        += $(WX_LDLIBS)
 
 # =========================

@@ -1,14 +1,14 @@
 #!/bin/bash
 # Script para criar pacote .deb para myapp
 
-set -e  # Sai se houver erro
+set -e # Sai se houver erro
 
 # ============================================
 # Configurações do pacote
 # ============================================
-APP_NAME="myapp"
+APP_NAME="app"
 APP_VERSION="1.0.0"
-ARCH="amd64"  # ou "i386", "armhf", "arm64"
+ARCH="amd64" # ou "i386", "armhf", "arm64"
 MAINTAINER="Seu Nome <seu.email@example.com>"
 DESCRIPTION="Descrição curta do aplicativo"
 LONG_DESCRIPTION="Descrição mais detalhada do aplicativo.
@@ -50,14 +50,14 @@ chmod 755 "${INSTALL_DIR}/${APP_NAME}"
 # Criar arquivo control
 # ============================================
 echo "Criando arquivo control..."
-cat > "${DEBIAN_DIR}/control" << EOF
+cat >"${DEBIAN_DIR}/control" <<EOF
 Package: ${APP_NAME}
 Version: ${APP_VERSION}
 Architecture: ${ARCH}
 Maintainer: ${MAINTAINER}
 Priority: optional
 Section: utils
-Homepage: https://github.com/seuusuario/${APP_NAME}
+Homepage: https://github.com/$(git config --get github.lopesivan.user)/${APP_NAME}
 Description: ${DESCRIPTION}
  ${LONG_DESCRIPTION}
 EOF
@@ -66,12 +66,12 @@ EOF
 # Criar script postinst (opcional)
 # ============================================
 echo "Criando script postinst..."
-cat > "${DEBIAN_DIR}/postinst" << 'EOF'
+cat >"${DEBIAN_DIR}/postinst" <<'EOF'
 #!/bin/bash
 set -e
 
-echo "Instalação de myapp concluída!"
-echo "Execute 'myapp' para iniciar o aplicativo."
+echo "Instalação de ${APP_NAME} concluída!"
+echo "Execute '${APP_NAME}' para iniciar o aplicativo."
 
 exit 0
 EOF
@@ -81,11 +81,11 @@ chmod 755 "${DEBIAN_DIR}/postinst"
 # Criar script prerm (opcional)
 # ============================================
 echo "Criando script prerm..."
-cat > "${DEBIAN_DIR}/prerm" << 'EOF'
+cat >"${DEBIAN_DIR}/prerm" <<'EOF'
 #!/bin/bash
 set -e
 
-echo "Removendo myapp..."
+echo "Removendo ${APP_NAME}..."
 
 exit 0
 EOF
@@ -97,10 +97,10 @@ chmod 755 "${DEBIAN_DIR}/prerm"
 DOC_DIR="${PKG_DIR}/usr/share/doc/${APP_NAME}"
 mkdir -p "${DOC_DIR}"
 
-cat > "${DOC_DIR}/copyright" << EOF
+cat >"${DOC_DIR}/copyright" <<EOF
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: ${APP_NAME}
-Source: https://github.com/seuusuario/${APP_NAME}
+Source: https://github.com/$(git config --get github.lopesivan.user)/${APP_NAME}
 
 Files: *
 Copyright: $(date +%Y) Seu Nome
@@ -127,7 +127,7 @@ EOF
 # ============================================
 # Criar changelog (opcional mas recomendado)
 # ============================================
-cat > "${DOC_DIR}/changelog.Debian" << EOF
+cat >"${DOC_DIR}/changelog.Debian" <<EOF
 ${APP_NAME} (${APP_VERSION}) unstable; urgency=low
 
   * Versão inicial do pacote
@@ -143,7 +143,7 @@ echo "Detectando dependências..."
 DEPS=$(ldd "${APP_NAME}" 2>/dev/null | grep "=>" | awk '{print $3}' | xargs -r dpkg -S 2>/dev/null | cut -d: -f1 | sort -u | tr '\n' ',' | sed 's/,$//' || true)
 
 if [ -n "$DEPS" ]; then
-    echo "Depends: ${DEPS}" >> "${DEBIAN_DIR}/control"
+    echo "Depends: ${DEPS}" >>"${DEBIAN_DIR}/control"
     echo "Dependências detectadas: ${DEPS}"
 fi
 

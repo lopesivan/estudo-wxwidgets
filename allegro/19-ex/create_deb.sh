@@ -9,7 +9,7 @@ set -e # Sai se houver erro
 APP_NAME="app"
 APP_VERSION="1.0.0"
 ARCH="amd64" # ou "i386", "armhf", "arm64"
-MAINTAINER="Seu Nome <seu.email@example.com>"
+MAINTAINER="$(git config --get user.name) <$(git config --get user.email)>"
 DESCRIPTION="Descrição curta do aplicativo"
 LONG_DESCRIPTION="Descrição mais detalhada do aplicativo.
  Pode ter múltiplas linhas."

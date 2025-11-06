@@ -1,3 +1,9 @@
+wxMathPlot (0.2.0-) unstable; urgency=low
+
+  * 
+
+ -- Davide Rondini <davide.rondini@samplesw.com>  Thu, 06 Nov 2025 04:30:13 -0300
+
 wxmathplot (0.2.0) stable; urgency=medium
 
   * Fix X scale: if X axis is set to date/time format, avoid negative values, which are not recognized by Windows.

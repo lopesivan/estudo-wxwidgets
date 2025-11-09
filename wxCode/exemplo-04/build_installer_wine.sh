@@ -1,11 +1,10 @@
-#!/usr/bin/env bash
-
+#!/bin/bash
 # ==========================================
 # Script para criar instalador Windows usando
 # Inno Setup via Wine no Linux
 # ==========================================
 
-set -e # Sair se houver erro
+set -e  # Sair se houver erro
 
 echo "=========================================="
 echo "  Build Instalador - Minimal App (Wine)"
@@ -28,7 +27,7 @@ INNO_COMPILER="$WINE_INNO_DIR/ISCC.exe"
 # VERIFICAR WINE
 # ==========================================
 echo "[1/5] Verificando Wine..."
-if ! command -v wine &>/dev/null; then
+if ! command -v wine &> /dev/null; then
     echo ""
     echo "ERRO: Wine não está instalado!"
     echo ""
@@ -53,14 +52,14 @@ if [ ! -f "$INNO_COMPILER" ]; then
     echo "  $INNO_COMPILER"
     echo ""
     echo "Procurando em outros locais..."
-
+    
     # Tentar encontrar em outros caminhos comuns
     POSSIBLE_PATHS=(
         "$HOME/.wine/drive_c/InnoSetup/ISCC.exe"
         "$HOME/.wine/drive_c/Program Files/Inno Setup 6/ISCC.exe"
         "$HOME/.wine/drive_c/Program Files (x86)/Inno Setup 6/ISCC.exe"
     )
-
+    
     FOUND=0
     for path in "${POSSIBLE_PATHS[@]}"; do
         if [ -f "$path" ]; then
@@ -70,7 +69,7 @@ if [ ! -f "$INNO_COMPILER" ]; then
             break
         fi
     done
-
+    
     if [ $FOUND -eq 0 ]; then
         echo ""
         echo "Inno Setup não encontrado!"
@@ -155,7 +154,7 @@ echo "────────────────────────�
 SCRIPT_PATH="$(pwd)/$INSTALLER_SCRIPT"
 
 # Tentar winepath primeiro
-if command -v winepath &>/dev/null; then
+if command -v winepath &> /dev/null; then
     WINE_SCRIPT_PATH=$(winepath -w "$SCRIPT_PATH" 2>/dev/null)
 else
     # Fallback: conversão manual
@@ -220,7 +219,7 @@ fi
 if [ $INSTALLER_FOUND -eq 0 ]; then
     echo "Procurando instalador..."
     FOUND_FILES=$(find . -name "minimal-setup-*.exe" -type f -newer "$INSTALLER_SCRIPT" 2>/dev/null)
-
+    
     if [ -n "$FOUND_FILES" ]; then
         echo "$FOUND_FILES" | while read -r file; do
             SIZE=$(du -h "$file" | cut -f1)

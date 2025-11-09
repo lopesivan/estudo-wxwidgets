@@ -3,8 +3,8 @@
 
 #define MyAppName "Minimal"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "Ivan Lopes"
-#define MyAppURL "http://ivanlopes.eng.br"
+#define MyAppPublisher "Seu Nome"
+#define MyAppURL "https://www.seusite.com"
 #define MyAppExeName "minimal.exe"
 #define MyAppDescription "Minimal wxWidgets Application"
 
@@ -77,14 +77,17 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 
 [Files]
 ; ==========================================
-; ARQUIVOS DA PASTA gccmsw
+; ARQUIVOS DA PASTA build/gccmsw
 ; ==========================================
 ; Executável principal
-Source: "gccmsw\minimal.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "build\gccmsw\minimal.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 ; DLLs necessárias do MinGW
-Source: "gccmsw\libgcc_s_seh-1.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "gccmsw\libstdc++-6.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "build\gccmsw\libgcc_s_seh-1.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "build\gccmsw\libstdc++-6.dll"; DestDir: "{app}"; Flags: ignoreversion
+
+; Makefile (opcional - para referência)
+Source: "build\Makefile"; DestDir: "{app}\build"; Flags: ignoreversion
 
 ; Arquivos adicionais (descomente se existirem)
 ;Source: "README.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme
@@ -129,9 +132,9 @@ var
   ProcessList: string;
 begin
   Result := True;
-
+  
   // Verificar se minimal.exe está rodando
-  if Exec('tasklist.exe', '/FI "IMAGENAME eq minimal.exe" /NH', '', SW_HIDE,
+  if Exec('tasklist.exe', '/FI "IMAGENAME eq minimal.exe" /NH', '', SW_HIDE, 
           ewWaitUntilTerminated, ResultCode) then
   begin
     // Se o processo existe, pedir para fechar
@@ -140,7 +143,7 @@ begin
       if MsgBox(ExpandConstant('{cm:AppRunning}'), mbConfirmation, MB_YESNO) = IDYES then
       begin
         // Tentar fechar o processo
-        Exec('taskkill.exe', '/F /IM minimal.exe', '', SW_HIDE,
+        Exec('taskkill.exe', '/F /IM minimal.exe', '', SW_HIDE, 
              ewWaitUntilTerminated, ResultCode);
         Sleep(1000);
       end
@@ -159,26 +162,26 @@ procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssInstall then
   begin
-    ProgressPage := CreateOutputProgressPage('Instalando {#MyAppName}',
+    ProgressPage := CreateOutputProgressPage('Instalando {#MyAppName}', 
                                              'Por favor aguarde...');
     ProgressPage.Show;
     try
       ProgressPage.SetProgress(0, 100);
       ProgressPage.SetText('Copiando minimal.exe...', '');
       Sleep(300);
-
+      
       ProgressPage.SetProgress(30, 100);
       ProgressPage.SetText('Copiando DLLs necessárias...', '');
       Sleep(300);
-
+      
       ProgressPage.SetProgress(60, 100);
       ProgressPage.SetText('Criando atalhos...', '');
       Sleep(300);
-
+      
       ProgressPage.SetProgress(90, 100);
       ProgressPage.SetText('Registrando aplicativo...', '');
       Sleep(300);
-
+      
       ProgressPage.SetProgress(100, 100);
       ProgressPage.SetText('Finalizando instalação...', '');
       Sleep(300);
@@ -186,14 +189,14 @@ begin
       ProgressPage.Hide;
     end;
   end;
-
+  
   if CurStep = ssPostInstall then
   begin
     // Mensagem de sucesso
     MsgBox(ExpandConstant('{cm:InstallSuccess}') + #13#10#13#10 +
            'Arquivos instalados em:' + #13#10 +
            ExpandConstant('{app}') + #13#10#13#10 +
-           'Tamanho total: aproximadamente 5 MB',
+           'Tamanho total: aproximadamente 5 MB', 
            mbInformation, MB_OK);
   end;
 end;
@@ -206,11 +209,11 @@ var
   Version: TWindowsVersion;
 begin
   Result := True;
-
+  
   if CurPageID = wpWelcome then
   begin
     GetWindowsVersionEx(Version);
-
+    
     // Verificar se é Windows 7 ou superior
     if (Version.Major < 6) or ((Version.Major = 6) and (Version.Minor < 1)) then
     begin
@@ -220,14 +223,14 @@ begin
       Result := False;
     end;
   end;
-
+  
   if CurPageID = wpSelectDir then
   begin
     // Verificar espaço em disco (mínimo 50 MB)
     if GetSpaceOnDisk(ExpandConstant('{app}'), False, 0, 0, 0) < (50 * 1024 * 1024) then
     begin
       MsgBox('Espaço insuficiente em disco!' + #13#10 +
-             'São necessários pelo menos 50 MB livres.',
+             'São necessários pelo menos 50 MB livres.', 
              mbError, MB_OK);
       Result := False;
     end;
@@ -245,23 +248,23 @@ begin
   if CurUninstallStep = usUninstall then
   begin
     // Fechar o aplicativo se estiver rodando
-    Exec('taskkill.exe', '/F /IM minimal.exe', '', SW_HIDE,
+    Exec('taskkill.exe', '/F /IM minimal.exe', '', SW_HIDE, 
          ewWaitUntilTerminated, ResultCode);
     Sleep(500);
   end;
-
+  
   if CurUninstallStep = usPostUninstall then
   begin
     // Perguntar se deseja remover configurações
     Response := MsgBox('Deseja remover também os arquivos de configuração?' + #13#10 +
-                       '(Dados salvos pelo aplicativo)',
+                       '(Dados salvos pelo aplicativo)', 
                        mbConfirmation, MB_YESNO);
     if Response = IDYES then
     begin
       DelTree(ExpandConstant('{userappdata}\{#MyAppName}'), True, True, True);
       DelTree(ExpandConstant('{localappdata}\{#MyAppName}'), True, True, True);
     end;
-
+    
     MsgBox('{#MyAppName} foi desinstalado com sucesso!', mbInformation, MB_OK);
   end;
 end;
@@ -269,21 +272,21 @@ end;
 // ==========================================
 // INFORMAÇÕES NA TELA "PRONTO PARA INSTALAR"
 // ==========================================
-function UpdateReadyMemo(Space, NewLine, MemoUserInfoInfo, MemoDirInfo,
-                         MemoTypeInfo, MemoComponentsInfo, MemoGroupInfo,
+function UpdateReadyMemo(Space, NewLine, MemoUserInfoInfo, MemoDirInfo, 
+                         MemoTypeInfo, MemoComponentsInfo, MemoGroupInfo, 
                          MemoTasksInfo: String): String;
 begin
   Result := '';
-
+  
   if MemoDirInfo <> '' then
     Result := Result + MemoDirInfo + NewLine + NewLine;
-
+  
   if MemoGroupInfo <> '' then
     Result := Result + MemoGroupInfo + NewLine + NewLine;
-
+    
   if MemoTasksInfo <> '' then
     Result := Result + MemoTasksInfo + NewLine + NewLine;
-
+  
   // Adicionar informações personalizadas
   Result := Result + 'Arquivos a serem instalados:' + NewLine;
   Result := Result + Space + '- minimal.exe' + NewLine;

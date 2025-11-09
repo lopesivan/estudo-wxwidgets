@@ -1,253 +1,123 @@
-#!/bin/bash
-# ==========================================
-# Script para criar instalador Windows usando
-# Inno Setup via Wine no Linux
-# ==========================================
+#!/usr/bin/env bash
+set -e
 
-set -e  # Sair se houver erro
+echo "📦 Criando instalador para minimal"
 
-echo "=========================================="
-echo "  Build Instalador - Minimal App (Wine)"
-echo "=========================================="
-echo ""
-
-# ==========================================
-# CONFIGURAÇÕES
-# ==========================================
 APP_NAME="minimal"
 BUILD_DIR="build/gccmsw"
 INSTALLER_SCRIPT="minimal_installer.iss"
 OUTPUT_DIR="installer_output"
 
-# Caminho correto do Inno Setup no seu Wine
+# Caminho padrão do Inno Setup no prefixo Wine
 WINE_INNO_DIR="$HOME/.wine/drive_c/Program Files (x86)/Inno Setup 6"
 INNO_COMPILER="$WINE_INNO_DIR/ISCC.exe"
 
-# ==========================================
-# VERIFICAR WINE
-# ==========================================
-echo "[1/5] Verificando Wine..."
-if ! command -v wine &> /dev/null; then
-    echo ""
-    echo "ERRO: Wine não está instalado!"
-    echo ""
-    echo "Instale com:"
-    echo "  Ubuntu/Debian: sudo apt install wine64 wine32"
-    echo "  Fedora:        sudo dnf install wine"
-    echo "  Arch:          sudo pacman -S wine"
-    echo ""
-    exit 1
+echo "🔎 Verificando Wine..."
+if ! command -v wine >/dev/null 2>&1; then
+  echo "ERRO: Wine não está instalado."
+  echo "Ubuntu/Debian: sudo apt install wine64 wine32"
+  echo "Fedora:        sudo dnf install wine"
+  echo "Arch:          sudo pacman -S wine"
+  exit 1
 fi
+echo "   OK - $(wine --version)"
 
-echo "   OK - Wine versão: $(wine --version)"
-
-# ==========================================
-# VERIFICAR INNO SETUP
-# ==========================================
-echo "[2/5] Verificando Inno Setup..."
-
+echo "🔎 Verificando Inno Setup..."
 if [ ! -f "$INNO_COMPILER" ]; then
-    echo ""
-    echo "ERRO: Inno Setup não encontrado em:"
-    echo "  $INNO_COMPILER"
-    echo ""
-    echo "Procurando em outros locais..."
-    
-    # Tentar encontrar em outros caminhos comuns
-    POSSIBLE_PATHS=(
-        "$HOME/.wine/drive_c/InnoSetup/ISCC.exe"
-        "$HOME/.wine/drive_c/Program Files/Inno Setup 6/ISCC.exe"
-        "$HOME/.wine/drive_c/Program Files (x86)/Inno Setup 6/ISCC.exe"
-    )
-    
-    FOUND=0
-    for path in "${POSSIBLE_PATHS[@]}"; do
-        if [ -f "$path" ]; then
-            INNO_COMPILER="$path"
-            echo "   Encontrado: $path"
-            FOUND=1
-            break
-        fi
-    done
-    
-    if [ $FOUND -eq 0 ]; then
-        echo ""
-        echo "Inno Setup não encontrado!"
-        echo "Baixe e instale de: https://jrsoftware.org/isdl.php"
-        echo "Execute: wine innosetup-6.x.x.exe"
-        exit 1
+  POSSIBLE_PATHS=(
+    "$HOME/.wine/drive_c/InnoSetup/ISCC.exe"
+    "$HOME/.wine/drive_c/Program Files/Inno Setup 6/ISCC.exe"
+    "$HOME/.wine/drive_c/Program Files (x86)/Inno Setup 6/ISCC.exe"
+  )
+  FOUND=0
+  for path in "${POSSIBLE_PATHS[@]}"; do
+    if [ -f "$path" ]; then
+      INNO_COMPILER="$path"
+      FOUND=1
+      break
     fi
-fi
-
-echo "   OK - Inno Setup encontrado"
-echo "   Caminho: $INNO_COMPILER"
-
-# ==========================================
-# VERIFICAR ARQUIVOS NECESSÁRIOS
-# ==========================================
-echo "[3/5] Verificando arquivos necessários..."
-
-if [ ! -f "$BUILD_DIR/$APP_NAME.exe" ]; then
-    echo ""
-    echo "ERRO: Executável não encontrado: $BUILD_DIR/$APP_NAME.exe"
-    echo ""
-    echo "Execute primeiro: ./build.sh"
+  done
+  if [ $FOUND -eq 0 ]; then
+    echo "ERRO: Inno Setup (ISCC.exe) não encontrado no prefixo Wine."
+    echo "Baixe/instale: https://jrsoftware.org/isdl.php (wine innosetup-6.x.x.exe)"
     exit 1
+  fi
 fi
-echo "   OK - $APP_NAME.exe encontrado"
+echo "   OK - Inno Setup em: $INNO_COMPILER"
 
-# Verificar DLLs
+echo "🔎 Verificando binários..."
+if [ ! -f "$BUILD_DIR/$APP_NAME.exe" ]; then
+  echo "ERRO: Executável não encontrado: $BUILD_DIR/$APP_NAME.exe"
+  echo "Dica: compile antes (ex.: ./build.sh)"
+  exit 1
+fi
+
+echo "🔎 Verificando DLLs..."
 MISSING_DLLS=0
-for dll in "libgcc_s_seh-1.dll" "libstdc++-6.dll"; do
-    if [ ! -f "$BUILD_DIR/$dll" ]; then
-        echo "   AVISO: $dll não encontrada!"
-        MISSING_DLLS=1
+NEEDED_DLLS=( "libgcc_s_seh-1.dll" "libstdc++-6.dll" "libwinpthread-1.dll" )
+for dll in "${NEEDED_DLLS[@]}"; do
+  if [ ! -f "$BUILD_DIR/$dll" ]; then
+    echo "⚠️  Faltando: $dll"
+    # Não marcamos como erro fatal; o .iss possui #ifexist para a libwinpthread.
+    # Mas libgcc_s_seh-1.dll e libstdc++-6.dll são praticamente obrigatórias.
+    if [ "$dll" != "libwinpthread-1.dll" ]; then
+      MISSING_DLLS=1
     fi
+  fi
 done
 
 if [ $MISSING_DLLS -eq 1 ]; then
-    echo ""
-    read -p "Continuar mesmo assim? (s/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Ss]$ ]]; then
-        exit 1
-    fi
+  echo "ERRO: DLLs essenciais faltando. Copie-as para $BUILD_DIR e tente novamente."
+  exit 1
 fi
 
-if [ ! -f "$INSTALLER_SCRIPT" ]; then
-    echo ""
-    echo "ERRO: Script do instalador não encontrado: $INSTALLER_SCRIPT"
-    exit 1
-fi
-echo "   OK - Script do instalador encontrado"
-
-# ==========================================
-# LISTAR ARQUIVOS
-# ==========================================
-echo "[4/5] Arquivos que serão incluídos no instalador:"
-if ls "$BUILD_DIR"/*.exe "$BUILD_DIR"/*.dll 2>/dev/null 1>&2; then
-    for file in "$BUILD_DIR"/*.exe "$BUILD_DIR"/*.dll; do
-        if [ -f "$file" ]; then
-            SIZE=$(du -h "$file" | cut -f1)
-            echo "   - $(basename "$file") ($SIZE)"
-        fi
-    done
-else
-    echo "   AVISO: Nenhum arquivo .exe ou .dll encontrado!"
-fi
-
-# ==========================================
-# CRIAR DIRETÓRIO DE SAÍDA
-# ==========================================
-echo "[5/5] Preparando e compilando..."
+echo "📁 Criando pasta de saída..."
 mkdir -p "$OUTPUT_DIR"
 
-# ==========================================
-# COMPILAR INSTALADOR COM WINE
-# ==========================================
-echo ""
-echo "Compilando instalador com Inno Setup..."
-echo "──────────────────────────────────────"
-
-# Converter caminho Linux para Windows (Wine)
-# Usar caminho absoluto
-SCRIPT_PATH="$(pwd)/$INSTALLER_SCRIPT"
-
-# Tentar winepath primeiro
-if command -v winepath &> /dev/null; then
-    WINE_SCRIPT_PATH=$(winepath -w "$SCRIPT_PATH" 2>/dev/null)
-else
-    # Fallback: conversão manual
-    WINE_SCRIPT_PATH="Z:$SCRIPT_PATH"
+if [ ! -f "$INSTALLER_SCRIPT" ]; then
+  echo "ERRO: Script do instalador não encontrado: $INSTALLER_SCRIPT"
+  exit 1
 fi
 
-echo "Script: $WINE_SCRIPT_PATH"
-echo ""
+# Caminho do .iss em formato Windows para o Wine
+SCRIPT_PATH="$(pwd)/$INSTALLER_SCRIPT"
+if command -v winepath >/dev/null 2>&1; then
+  WINE_SCRIPT_PATH="$(winepath -w "$SCRIPT_PATH")"
+else
+  WINE_SCRIPT_PATH="Z:$SCRIPT_PATH"
+fi
 
-# Compilar com Wine (redirecionar output)
-wine "$INNO_COMPILER" "$WINE_SCRIPT_PATH" 2>&1 | grep -v "^fixme:" | grep -v "^wine:" || true
-
-EXIT_CODE=${PIPESTATUS[0]}
+echo "🚀 Compilando com Inno Setup via Wine..."
+# Silencia ruídos do Wine sem perder exit code
+WINEDEBUG=-all wine "$INNO_COMPILER" "$WINE_SCRIPT_PATH"
+EXIT_CODE=$?
 
 if [ $EXIT_CODE -ne 0 ]; then
-    echo ""
-    echo "=========================================="
-    echo "  ERRO: Falha ao criar instalador!"
-    echo "=========================================="
-    echo ""
-    echo "Código de saída: $EXIT_CODE"
-    echo ""
-    echo "Verifique:"
-    echo "  1. Se o arquivo $INSTALLER_SCRIPT está correto"
-    echo "  2. Se os caminhos no .iss estão corretos"
-    echo "  3. Se todos os arquivos necessários existem"
-    echo ""
-    echo "Tente compilar manualmente:"
-    echo "  wine \"$INNO_COMPILER\" \"$WINE_SCRIPT_PATH\""
-    echo ""
-    exit 1
+  echo "❌ Falha ao criar o instalador (exit $EXIT_CODE)."
+  echo "Tente rodar manualmente:"
+  echo "  WINEDEBUG=-all wine \"$INNO_COMPILER\" \"$WINE_SCRIPT_PATH\""
+  exit $EXIT_CODE
 fi
 
-# ==========================================
-# SUCESSO
-# ==========================================
-echo ""
-echo "=========================================="
-echo "  INSTALADOR CRIADO COM SUCESSO!"
-echo "=========================================="
-echo ""
-
-# Procurar e mostrar arquivo gerado
-INSTALLER_FOUND=0
-
-# Procurar no diretório de saída especificado
-if [ -d "$OUTPUT_DIR" ]; then
-    for installer in "$OUTPUT_DIR"/*.exe; do
-        if [ -f "$installer" ]; then
-            SIZE=$(du -h "$installer" | cut -f1)
-            echo "📦 Arquivo gerado:"
-            echo "   Nome: $(basename "$installer")"
-            echo "   Tamanho: $SIZE"
-            echo "   Caminho: $(realpath "$installer")"
-            echo ""
-            INSTALLER_FOUND=1
-        fi
-    done
+echo "✅ Compilação concluída."
+echo "🔎 Procurando executável gerado..."
+FOUND=0
+if ls "$OUTPUT_DIR"/*.exe >/dev/null 2>&1; then
+  for f in "$OUTPUT_DIR"/*.exe; do
+    [ -f "$f" ] || continue
+    SIZE=$(du -h "$f" | cut -f1)
+    echo "📦 Arquivo: $(basename "$f")  ($SIZE)"
+    echo "    Caminho: $(realpath "$f")"
+    FOUND=1
+  done
 fi
 
-# Se não encontrou, procurar em outros locais
-if [ $INSTALLER_FOUND -eq 0 ]; then
-    echo "Procurando instalador..."
-    FOUND_FILES=$(find . -name "minimal-setup-*.exe" -type f -newer "$INSTALLER_SCRIPT" 2>/dev/null)
-    
-    if [ -n "$FOUND_FILES" ]; then
-        echo "$FOUND_FILES" | while read -r file; do
-            SIZE=$(du -h "$file" | cut -f1)
-            echo "📦 Encontrado:"
-            echo "   $file ($SIZE)"
-        done
-        echo ""
-    else
-        echo "⚠️  AVISO: Arquivo .exe não encontrado!"
-        echo "   Verifique manualmente o diretório $OUTPUT_DIR"
-        echo ""
-    fi
+if [ $FOUND -eq 0 ]; then
+  echo "⚠️  Nenhum .exe encontrado no diretório $OUTPUT_DIR."
+  echo "Verifique mensagens do Inno Setup e caminhos de saída."
 fi
 
-echo "=========================================="
-echo "  PRÓXIMOS PASSOS"
-echo "=========================================="
-echo ""
-echo "✓ Para testar no Windows:"
-echo "  1. Copie o arquivo .exe para uma máquina Windows"
-echo "  2. Execute como administrador"
-echo ""
-echo "✓ Para testar com Wine (teste básico):"
-echo "  wine $OUTPUT_DIR/minimal-setup-*.exe"
-echo ""
-echo "✓ Para verificar conteúdo do instalador:"
-echo "  7z l $OUTPUT_DIR/minimal-setup-*.exe"
-echo ""
-echo "=========================================="
+echo "ℹ️  Teste rápido no Wine:"
+echo "    wine \"$OUTPUT_DIR/minimal-setup-$MyAppVersion-x64.exe\"  # ajuste o nome"
 
-exit 0
+

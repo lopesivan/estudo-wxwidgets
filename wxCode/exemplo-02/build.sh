@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-LD_LIBRARY_PATH=/home/ivan/wx/xml2/lib \
+# 1) Gere o Makefile com o bakefile (ok)
+PYENV_VERSION=2.7.18 \
+    LD_LIBRARY_PATH=/home/ivan/wx/xml2/lib \
     /home/ivan/wx/linux-wx-3.2.4/bin/bakefile -f gnu \
     minimal.bkl -o Makefile
 

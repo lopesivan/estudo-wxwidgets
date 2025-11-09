@@ -6,7 +6,13 @@
              compiled wxWidgets in release mode, you'll get link errors! -->
     <debug-info>on</debug-info>
     <runtime-libs>static</runtime-libs>
-    <sources>minimal.cpp main.exe.manifest</sources>
+    <!-- if you use win32 resources for your sample and you are lazy and
+	     don't want to use the <win32-res>myresfile.rc</win32-res> tag,
+	     you can just write:
+    <has-win32-res/>
+	-->
+    <win32-res>minimal.rc</win32-res>
+    <sources>minimal.cpp</sources>
     <wx-lib>core</wx-lib>
     <wx-lib>base</wx-lib>
   </exe>

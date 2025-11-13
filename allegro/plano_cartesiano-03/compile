@@ -1,0 +1,1 @@
+gcc main.c -o plano_cartesiano -lallegro -lallegro_primitives -lallegro_font -lallegro_ttf

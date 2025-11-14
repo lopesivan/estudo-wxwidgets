@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.16)
 project(wx_allegro_paint)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ---------- wxWidgets ----------
 find_package(wxWidgets 3.2 REQUIRED COMPONENTS core base gl)

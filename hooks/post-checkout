@@ -1,0 +1,22 @@
+#!/bin/sh
+# Mensagem de lembrete (ajuste à vontade)
+cat <<EOT
+
+==========  TODO LIST  ==========
+1. Verificar se wxWidgets e Allegro5 estão instalados:
+   sudo apt install libwxgtk3.2-dev liballegro5-dev libgtk-3-dev
+
+2. Compilar o projeto:
+   mkdir -p build && cd build
+   cmake .. -DCMAKE_BUILD_TYPE=Release
+   cmake --build . --parallel
+
+3. Executar:
+   ./wx_allegro_paint
+
+4. Antes de commit:
+   - rode ./scripts/testa.sh (se existir)
+   - atualne o CHANGELOG.md
+==========  FIM TODO  ===========
+
+EOT

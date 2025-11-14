@@ -1,0 +1,4 @@
+C:/Users/ivan/source/repos/exemplo/exemplo-vc/exemplo-02/build-msvc-x64/CMakeFiles/run.dir
+C:/Users/ivan/source/repos/exemplo/exemplo-vc/exemplo-02/build-msvc-x64/CMakeFiles/main.dir
+C:/Users/ivan/source/repos/exemplo/exemplo-vc/exemplo-02/build-msvc-x64/CMakeFiles/ALL_BUILD.dir
+C:/Users/ivan/source/repos/exemplo/exemplo-vc/exemplo-02/build-msvc-x64/CMakeFiles/ZERO_CHECK.dir

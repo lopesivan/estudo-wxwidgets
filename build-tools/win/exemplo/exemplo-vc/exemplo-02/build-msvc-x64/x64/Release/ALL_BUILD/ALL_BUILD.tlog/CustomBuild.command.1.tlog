@@ -1,0 +1,10 @@
+^C:\USERS\IVAN\SOURCE\REPOS\EXEMPLO\EXEMPLO-VC\EXEMPLO-02\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/ivan/source/repos/exemplo/exemplo-vc/exemplo-02 -BC:/Users/ivan/source/repos/exemplo/exemplo-vc/exemplo-02/build-msvc-x64 --check-stamp-file C:/Users/ivan/source/repos/exemplo/exemplo-vc/exemplo-02/build-msvc-x64/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

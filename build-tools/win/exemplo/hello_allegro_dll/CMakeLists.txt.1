@@ -1,0 +1,26 @@
+cmake_minimum_required(VERSION 3.10)
+project(AllegroExample)
+
+# Define onde o Allegro está instalado
+set(allegro_DIR "C:/Users/ivan/source/repos/SDKs/MinGW64/allegro/lib/cmake/allegro")
+
+# Encontra o Allegro
+find_package(allegro 5 REQUIRED)
+
+# Cria o executável
+add_executable(exemplo src/main.cpp)
+
+# Linka com o Allegro - usa ALLEGRO_LIBRARIES que é definido pelo find_package
+target_link_libraries(exemplo ${ALLEGRO_LIBRARIES})
+target_include_directories(exemplo PRIVATE ${ALLEGRO_INCLUDE_DIRS})
+
+# Se você usar addons (imagem, primitivas, fonte, etc), adicione assim:
+# target_link_libraries(exemplo 
+#     allegro::allegro
+#     allegro::allegro_image
+#     allegro::allegro_primitives
+#     allegro::allegro_font
+#     allegro::allegro_ttf
+#     allegro::allegro_audio
+#     allegro::allegro_acodec
+# )

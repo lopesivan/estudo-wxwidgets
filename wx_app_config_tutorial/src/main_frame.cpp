@@ -5,7 +5,10 @@
 #include <wx/filename.h>
 
 MainFrame::MainFrame()
-    : wxFrame(nullptr, wxID_ANY, "Settings Demo", wxDefaultPosition,
+    : wxFrame(nullptr,
+              wxID_ANY,
+              "Settings Demo",
+              wxDefaultPosition,
               wxDefaultSize)
 {
     SetMinClientSize(FromDIP(wxSize(600, 400)));
@@ -36,33 +39,48 @@ void MainFrame::BuildMenuBar()
     // Recent file items will be inserted here by wxFileHistory
     fileMenu->Append(wxID_EXIT, "E&xit\tAlt+F4");
 
-    auto *viewMenu = new wxMenu();
-    viewMenu->Append(ID_FONT_INCREASE, "Increase Font Size\tCtrl+=");
-    viewMenu->Append(ID_FONT_DECREASE, "Decrease Font Size\tCtrl+-");
+    auto* viewMenu = new wxMenu();
+    viewMenu->Append(ID_FONT_INCREASE,
+                     "Increase Font Size\tCtrl+=");
+    viewMenu->Append(ID_FONT_DECREASE,
+                     "Decrease Font Size\tCtrl+-");
     viewMenu->Append(ID_FONT_RESET, "Reset Font Size\tCtrl+0");
 
-    auto *menuBar = new wxMenuBar();
+    auto* menuBar = new wxMenuBar();
     menuBar->Append(fileMenu, "&File");
     menuBar->Append(viewMenu, "&View");
     SetMenuBar(menuBar);
 
     Bind(wxEVT_MENU, &MainFrame::OnOpen, this, wxID_OPEN);
-    Bind(wxEVT_MENU, [this](wxCommandEvent &) { Close(); }, wxID_EXIT);
-    Bind(wxEVT_MENU, &MainFrame::OnRecentFile, this, wxID_FILE1, wxID_FILE9);
-    Bind(wxEVT_MENU, &MainFrame::OnFontSizeChange, this, ID_FONT_INCREASE,
+    Bind(
+        wxEVT_MENU,
+        [this](wxCommandEvent&) { Close(); },
+        wxID_EXIT);
+    Bind(wxEVT_MENU,
+         &MainFrame::OnRecentFile,
+         this,
+         wxID_FILE1,
+         wxID_FILE9);
+    Bind(wxEVT_MENU,
+         &MainFrame::OnFontSizeChange,
+         this,
+         ID_FONT_INCREASE,
          ID_FONT_RESET);
 }
 
 void MainFrame::BuildUI()
 {
-    textCtrl =
-        new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition,
-                       wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY);
+    textCtrl = new wxTextCtrl(this,
+                              wxID_ANY,
+                              "",
+                              wxDefaultPosition,
+                              wxDefaultSize,
+                              wxTE_MULTILINE | wxTE_READONLY);
 }
 
 void MainFrame::RestoreSettings()
 {
-    auto *config = wxConfigBase::Get();
+    auto* config = wxConfigBase::Get();
 
     // Recent files
     fileHistory = new wxFileHistory(9);
@@ -76,7 +94,7 @@ void MainFrame::RestoreSettings()
 
 void MainFrame::SaveSettings()
 {
-    auto *config = wxConfigBase::Get();
+    auto* config = wxConfigBase::Get();
 
     // Recent files
     fileHistory->Save(*config);
@@ -87,11 +105,12 @@ void MainFrame::SaveSettings()
     config->Flush();
 }
 
-void MainFrame::OpenFile(const wxString &path)
+void MainFrame::OpenFile(const wxString& path)
 {
-    if (!textCtrl->LoadFile(path))
+    if(!textCtrl->LoadFile(path))
     {
-        wxMessageBox("Could not open file: " + path, "Error",
+        wxMessageBox("Could not open file: " + path,
+                     "Error",
                      wxOK | wxICON_ERROR);
         return;
     }
@@ -102,38 +121,45 @@ void MainFrame::OpenFile(const wxString &path)
     fileHistory->AddFileToHistory(path);
 
     // Save last used directory
-    wxConfigBase::Get()->Write("/Paths/LastDirectory", wxPathOnly(path));
+    wxConfigBase::Get()->Write("/Paths/LastDirectory",
+                               wxPathOnly(path));
 }
 
 
 void MainFrame::ApplyFontSize(int size)
 {
-    wxFont font(size, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL,
+    wxFont font(size,
+                wxFONTFAMILY_TELETYPE,
+                wxFONTSTYLE_NORMAL,
                 wxFONTWEIGHT_NORMAL);
     textCtrl->SetFont(font);
 }
 
-void MainFrame::OnOpen(wxCommandEvent &event)
+void MainFrame::OnOpen(wxCommandEvent& event)
 {
-    wxString lastDir = wxConfigBase::Get()->Read("/Paths/LastDirectory",
-                                                 wxGetHomeDir());
+    wxString lastDir = wxConfigBase::Get()->Read(
+        "/Paths/LastDirectory", wxGetHomeDir());
 
-    wxFileDialog dlg(this, "Open File", lastDir, "",
+    wxFileDialog dlg(this,
+                     "Open File",
+                     lastDir,
+                     "",
                      "Text files (*.txt)|*.txt|All files (*.*)|*.*",
                      wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
-    if (dlg.ShowModal() == wxID_OK)
+    if(dlg.ShowModal() == wxID_OK)
         OpenFile(dlg.GetPath());
 }
 
-void MainFrame::OnRecentFile(wxCommandEvent &event)
+void MainFrame::OnRecentFile(wxCommandEvent& event)
 {
-    int index = event.GetId() - wxID_FILE1;
-    wxString path = fileHistory->GetHistoryFile(index);
+    int      index = event.GetId() - wxID_FILE1;
+    wxString path  = fileHistory->GetHistoryFile(index);
 
-    if (!wxFileExists(path))
+    if(!wxFileExists(path))
     {
-        wxMessageBox("File not found: " + path, "Error",
+        wxMessageBox("File not found: " + path,
+                     "Error",
                      wxOK | wxICON_WARNING);
         fileHistory->RemoveFileFromHistory(index);
         return;
@@ -142,9 +168,9 @@ void MainFrame::OnRecentFile(wxCommandEvent &event)
     OpenFile(path);
 }
 
-void MainFrame::OnFontSizeChange(wxCommandEvent &event)
+void MainFrame::OnFontSizeChange(wxCommandEvent& event)
 {
-    switch (event.GetId())
+    switch(event.GetId())
     {
     case ID_FONT_INCREASE:
         fontSize = std::min(fontSize + 2, 48);
@@ -160,7 +186,7 @@ void MainFrame::OnFontSizeChange(wxCommandEvent &event)
     ApplyFontSize(fontSize);
 }
 
-void MainFrame::OnClose(wxCloseEvent &event)
+void MainFrame::OnClose(wxCloseEvent& event)
 {
     SaveSettings();
     event.Skip();

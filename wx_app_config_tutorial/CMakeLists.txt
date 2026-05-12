@@ -7,7 +7,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # ----------------------------------------------------------------------------
 # wxWidgets — instalação local via awx
 # ----------------------------------------------------------------------------
-set(wxWidgets_ROOT_DIR "$ENV{HOME}/.local/wxwidgets/linux-cmake-wx-3.3.1")
+set(V
+    "3.3.1"
+    CACHE STRING "Versão do wxWidgets")
+set(wxWidgets_ROOT_DIR "$ENV{HOME}/.local/wxwidgets/linux-cmake-wx-${V}")
 set(wxWidgets_CONFIG_EXECUTABLE "${wxWidgets_ROOT_DIR}/bin/wx-config")
 
 find_package(wxWidgets REQUIRED COMPONENTS core base)

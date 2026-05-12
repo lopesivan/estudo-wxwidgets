@@ -5,26 +5,26 @@
 
 class MainFrame : public wxFrame
 {
-public:
+  public:
     MainFrame();
     ~MainFrame();
 
-private:
+  private:
     void BuildMenuBar();
     void BuildUI();
     void RestoreSettings();
     void SaveSettings();
-    void OpenFile(const wxString &path);
+    void OpenFile(const wxString& path);
     void ApplyFontSize(int size);
 
-    void OnOpen(wxCommandEvent &event);
-    void OnRecentFile(wxCommandEvent &event);
-    void OnFontSizeChange(wxCommandEvent &event);
-    void OnClose(wxCloseEvent &event);
+    void OnOpen(wxCommandEvent& event);
+    void OnRecentFile(wxCommandEvent& event);
+    void OnFontSizeChange(wxCommandEvent& event);
+    void OnClose(wxCloseEvent& event);
 
-    wxTextCtrl *textCtrl = nullptr;
-    wxMenu *fileMenu = nullptr;
-    wxFileHistory *fileHistory = nullptr;
+    wxTextCtrl*    textCtrl    = nullptr;
+    wxMenu*        fileMenu    = nullptr;
+    wxFileHistory* fileHistory = nullptr;
 
     int fontSize = 12;
 

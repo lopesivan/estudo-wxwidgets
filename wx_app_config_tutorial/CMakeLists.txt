@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
+set(PROGRAM_NAME "app")
+
 # =========================
 # Configurar cross-compile para Windows usando MinGW
 # =========================
@@ -14,7 +16,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
-project(WxWidgetsApp)
+project(WxWidgets${PROGRAM_NAME})
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -90,14 +92,14 @@ if(NOT SOURCES)
   message(FATAL_ERROR "No .cpp files found in current directory")
 endif()
 
-add_executable(app ${SOURCES})
-target_compile_options(app PRIVATE ${WX_CXXFLAGS_LIST})
-target_link_libraries(app PRIVATE ${WX_LDLIBS_LIST})
+add_executable(${PROGRAM_NAME} ${SOURCES})
+target_compile_options(${PROGRAM_NAME} PRIVATE ${WX_CXXFLAGS_LIST})
+target_link_libraries(${PROGRAM_NAME} PRIVATE ${WX_LDLIBS_LIST})
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  target_compile_options(app PRIVATE -O0 -g)
+  target_compile_options(${PROGRAM_NAME} PRIVATE -O0 -g)
 else()
-  target_compile_options(app PRIVATE -O3)
+  target_compile_options(${PROGRAM_NAME} PRIVATE -O3)
 endif()
 
 # =========================

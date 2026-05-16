@@ -1,38 +1,136 @@
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
-project(settings_demo LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.15)
+
+# =========================
+# Configurar cross-compile para Windows usando MinGW
+# =========================
+set(CMAKE_SYSTEM_NAME Windows)
+set(CMAKE_C_COMPILER /bin/x86_64-w64-mingw32-gcc)
+set(CMAKE_CXX_COMPILER /bin/x86_64-w64-mingw32-g++)
+set(CMAKE_RC_COMPILER /bin/x86_64-w64-mingw32-windres)
+
+# Onde procurar bibliotecas/includes do target
+set(CMAKE_FIND_ROOT_PATH /usr/x86_64-w64-mingw32)
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+
+project(WxWidgetsApp)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# ----------------------------------------
 # Opções de build para debug
-# ----------------------------------------
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# ----------------------------------------------------------------------------
-# wxWidgets — instalação local via awx
-# ----------------------------------------------------------------------------
-set(V
+# =========================
+# Configuração do wxWidgets
+# =========================
+set(WX_VERSION
     "3.3.1"
-    CACHE STRING "Versão do wxWidgets")
-set(wxWidgets_ROOT_DIR "$ENV{HOME}/.local/wxwidgets/linux-cmake-wx-${V}")
-set(wxWidgets_CONFIG_EXECUTABLE "${wxWidgets_ROOT_DIR}/bin/wx-config")
+    CACHE STRING "wxWidgets version")
+set(WX_OS
+    "windows"
+    CACHE STRING "OS type")
+set(WX_BASE_DIR
+    "$ENV{HOME}/.local/wxwidgets"
+    CACHE PATH "wxWidgets base directory")
+set(WX_SRC_DIR
+    "${WX_BASE_DIR}/wxWidgets-${WX_VERSION}-${WX_OS}"
+    CACHE PATH "wxWidgets source directory")
+set(WX_INSTALL_DIR
+    "${WX_BASE_DIR}/${WX_OS}-wx-${WX_VERSION}"
+    CACHE PATH "wxWidgets install directory")
+set(WX_CONFIG_PATH
+    "${WX_INSTALL_DIR}/bin/wx-config"
+    CACHE FILEPATH "Path to wx-config")
+set(WX_STATIC
+    YES
+    CACHE BOOL "Use static wxWidgets libraries")
+set(USE_RPATH
+    ON
+    CACHE BOOL "Use RPATH for library location")
 
-find_package(wxWidgets REQUIRED COMPONENTS core base)
-include(${wxWidgets_USE_FILE})
-
-# ----------------------------------------------------------------------------
-set(SRCS src/app.cpp src/main_frame.cpp)
-
-if(APPLE)
-  add_executable(main MACOSX_BUNDLE ${SRCS})
-  set_target_properties(main PROPERTIES MACOSX_BUNDLE_INFO_PLIST
-                                        ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
-elseif(WIN32)
-  add_executable(main WIN32 ${SRCS} main.exe.manifest resources.rc)
-else()
-  add_executable(main ${SRCS})
+# Verificar se wx-config existe
+if(NOT EXISTS ${WX_CONFIG_PATH})
+  message(FATAL_ERROR "wx-config not found at: ${WX_CONFIG_PATH}")
 endif()
 
-target_link_libraries(main PRIVATE ${wxWidgets_LIBRARIES})
+# =========================
+# Obter flags do wx-config
+# =========================
+if(WX_STATIC)
+  set(WX_STATIC_FLAG "--static=yes")
+else()
+  set(WX_STATIC_FLAG "--static=no")
+endif()
+
+# Obter CXXFLAGS do wxWidgets
+execute_process(
+  COMMAND ${WX_CONFIG_PATH} --cppflags
+  OUTPUT_VARIABLE WX_CXXFLAGS
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+# Obter LDLIBS do wxWidgets
+execute_process(
+  COMMAND ${WX_CONFIG_PATH} ${WX_STATIC_FLAG} --libs
+  OUTPUT_VARIABLE WX_LDLIBS
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+# Separar flags em listas
+string(REPLACE " " ";" WX_CXXFLAGS_LIST ${WX_CXXFLAGS})
+string(REPLACE " " ";" WX_LDLIBS_LIST ${WX_LDLIBS})
+
+# =========================
+# Coletar arquivos fonte
+# =========================
+file(GLOB SOURCES "src/*.cpp")
+
+if(NOT SOURCES)
+  message(FATAL_ERROR "No .cpp files found in current directory")
+endif()
+
+add_executable(app ${SOURCES})
+target_compile_options(app PRIVATE ${WX_CXXFLAGS_LIST})
+target_link_libraries(app PRIVATE ${WX_LDLIBS_LIST})
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  target_compile_options(app PRIVATE -O0 -g)
+else()
+  target_compile_options(app PRIVATE -O3)
+endif()
+
+# =========================
+# Target para copiar DLLs (MinGW cross-compile)
+# =========================
+set(MINGW_DLL_PATH
+    "/usr/lib/gcc/x86_64-w64-mingw32/13-win32"
+    CACHE PATH "MinGW DLL path")
+
+add_custom_target(
+  copy_dlls
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          ${MINGW_DLL_PATH}/libgcc_s_seh-1.dll ${CMAKE_CURRENT_BINARY_DIR}/
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          ${MINGW_DLL_PATH}/libstdc++-6.dll ${CMAKE_CURRENT_BINARY_DIR}/
+  COMMENT "Copying MinGW DLLs")
+
+# =========================
+# Target customizado para run com Wine
+# =========================
+add_custom_target(
+  run
+  COMMAND wine ./${PROGRAM_NAME}.exe
+  DEPENDS ${PROGRAM_NAME} copy_dlls
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMENT "Running program with Wine")
+
+# =========================
+# Informações de build
+# =========================
+message(STATUS "wxWidgets version: ${WX_VERSION}")
+message(STATUS "wxWidgets install dir: ${WX_INSTALL_DIR}")
+message(STATUS "wx-config path: ${WX_CONFIG_PATH}")
+message(STATUS "Static linking: ${WX_STATIC}")
+message(STATUS "Use RPATH: ${USE_RPATH}")
+message(STATUS "Found sources: ${SOURCES}")

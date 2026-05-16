@@ -92,7 +92,7 @@ if(NOT SOURCES)
   message(FATAL_ERROR "No .cpp files found in current directory")
 endif()
 
-add_executable(${PROGRAM_NAME} ${SOURCES})
+add_executable(${PROGRAM_NAME} WIN32 ${SOURCES} main.exe.manifest resources.rc)
 target_compile_options(${PROGRAM_NAME} PRIVATE ${WX_CXXFLAGS_LIST})
 target_link_libraries(${PROGRAM_NAME} PRIVATE ${WX_LDLIBS_LIST})
 

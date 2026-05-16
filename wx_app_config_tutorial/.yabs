@@ -2,6 +2,8 @@ local function app(cmd, args)
     require("config.nvim_dev").app(cmd, args)
 end
 
+local file_exists = require("yabs.conditions").file_exists
+
 local function input_default(prompt, default)
     local value = vim.fn.input(prompt, default)
 
@@ -22,6 +24,7 @@ return {
                     build_dir .. "/app.exe"
                 })
             end,
+            condition = file_exists("build/app.exe"),
             type = "lua",
         },
         ["cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=toolchains/mingw64.cmake"] = {
@@ -78,6 +81,20 @@ return {
             end,
             type = "lua",
             desc = "Clean and Build",
+        },
+
+        ["make -C build copy_dlls"] = {
+            command = function()
+                local build_dir = "build"
+                app("make", {
+                    "-C",
+                    build_dir,
+                    "copy_dlls",
+                })
+            end,
+            type = "lua",
+            condition = file_exists("build/Makefile"),
+            desc = "Copy dlls",
         },
 
     },

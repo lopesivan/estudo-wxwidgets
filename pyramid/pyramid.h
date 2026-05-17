@@ -9,6 +9,8 @@
 
 #ifndef PYRSAMLE_H
 #define PYRSAMLE_H
+#include "oglstuff.h"
+#include "wx/glcanvas.h"
 
 // Define a new application
 class MyApp: public wxApp

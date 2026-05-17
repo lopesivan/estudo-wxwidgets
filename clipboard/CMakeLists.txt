@@ -16,7 +16,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # wxWidgets — instalação local via awx
 # ----------------------------------------------------------------------------
 set(V
-    "3.2.4"
+    "3.3.1"
     CACHE STRING "Versão do wxWidgets")
 set(wxWidgets_ROOT_DIR "$ENV{HOME}/.local/wxwidgets/linux-cmake-wx-${V}")
 set(wxWidgets_CONFIG_EXECUTABLE "${wxWidgets_ROOT_DIR}/bin/wx-config")

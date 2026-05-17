@@ -1,0 +1,10 @@
+image_viewer/
+├── CMakeLists.txt
+├── src/
+│   ├── app.cpp
+│   ├── main_frame.cpp
+│   ├── main_frame.h
+│   ├── image_canvas.cpp
+│   └── image_canvas.h
+└── assets/
+    └── imagem.png

@@ -1,3 +1,0 @@
-cmake -B build-win -S . \
-  -DCMAKE_TOOLCHAIN_FILE=toolchains/mingw64.cmake
-

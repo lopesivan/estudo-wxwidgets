@@ -63,7 +63,7 @@ execute_process(
 
 # Obter LDLIBS do wxWidgets
 execute_process(
-  COMMAND ${WX_CONFIG_PATH} ${WX_STATIC_FLAG} --libs
+  COMMAND ${WX_CONFIG_PATH} ${WX_STATIC_FLAG} --libs xrc,html,xml,core,base
   OUTPUT_VARIABLE WX_LDLIBS
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 
@@ -83,6 +83,13 @@ endif()
 add_executable(${PROGRAM_NAME} WIN32 ${SOURCES} main.exe.manifest resources.rc)
 target_compile_options(${PROGRAM_NAME} PRIVATE ${WX_CXXFLAGS_LIST})
 target_link_libraries(${PROGRAM_NAME} PRIVATE ${WX_LDLIBS_LIST})
+
+add_custom_command(
+  TARGET ${PROGRAM_NAME}
+  POST_BUILD
+  COMMAND
+    ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/resources
+    ${CMAKE_CURRENT_BINARY_DIR}/resources)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_options(${PROGRAM_NAME} PRIVATE -O0 -g)

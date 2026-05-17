@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 set(PROGRAM_NAME
-    "minimal"
+    "drawing"
     CACHE STRING "Nome do executável")
 
 project(${PROGRAM_NAME} LANGUAGES CXX)
@@ -28,7 +28,7 @@ if(wxWidgets_USE_FILE)
 endif()
 
 # ----------------------------------------------------------------------------
-set(SRCS minimal.cpp)
+set(SRCS drawing.cpp)
 
 add_executable(${PROGRAM_NAME} ${SRCS})
 target_link_libraries(${PROGRAM_NAME} PRIVATE ${wxWidgets_LIBRARIES})

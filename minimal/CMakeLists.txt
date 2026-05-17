@@ -1,65 +1,34 @@
-#############################################################################
-# Name:        samples/minimal/CMakeListst.txt
-# Purpose:     Sample CMake file to show usage of cmake for wxWidgets users
-# Author:      Tobias Taschner
-# Created:     2016-10-23
-# Copyright:   (c) 2016 wxWidgets development team
-# Licence:     wxWindows licence
-#############################################################################
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
-#
-# This file is just a sample to show using cmake from an application
-# If you want to build the minimal and other samples please use the
-# wxBUILD_SAMPLES option when using cmake on the library
-#
+set(PROGRAM_NAME
+    "minimal"
+    CACHE STRING "Nome do executável")
 
-# Declare the minimum required CMake version
-cmake_minimum_required(VERSION 2.8.12)
+project(${PROGRAM_NAME} LANGUAGES CXX)
 
-if(APPLE AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
-    # If no deployment target has been set default to the minimum supported
-    # OS version (this has to be set before the first project() call)
-    if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
-        set(CMAKE_OSX_DEPLOYMENT_TARGET 12.0 CACHE STRING "iOS Deployment Target")
-    else()
-        set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10 CACHE STRING "macOS Deployment Target")
-    endif()
-endif()
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Name the project
-project(minimal)
+set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Request the required wxWidgets libs
-find_package(wxWidgets 3.2 COMPONENTS core base REQUIRED CONFIG)
+# ----------------------------------------------------------------------------
+# wxWidgets — instalação local via awx
+# ----------------------------------------------------------------------------
+set(V
+    "3.2.4"
+    CACHE STRING "Versão do wxWidgets")
+set(wxWidgets_ROOT_DIR "$ENV{HOME}/.local/wxwidgets/linux-cmake-wx-${V}")
+set(wxWidgets_CONFIG_EXECUTABLE "${wxWidgets_ROOT_DIR}/bin/wx-config")
 
-# Include the wxWidgets use file to initialize various settings
+find_package(wxWidgets 3.2 REQUIRED COMPONENTS core base)
+
 if(wxWidgets_USE_FILE)
-    include(${wxWidgets_USE_FILE})
+  include(${wxWidgets_USE_FILE})
 endif()
 
-# Define a variable containing a list of source files for the project
-set(SRC_FILES
-    minimal.cpp
-    )
+# ----------------------------------------------------------------------------
+set(SRCS minimal.cpp)
 
-if(WIN32)
-    # Include a RC file for windows
-    list(APPEND SRC_FILES ../sample.rc)
-elseif(APPLE)
-    # Add an icon for the apple .app file
-    list(APPEND SRC_FILES ../../src/osx/carbon/wxmac.icns)
-endif()
-
-# Define the build target for the executable
-add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE ${SRC_FILES})
-# Link required libraries to the executable
-target_link_libraries(${PROJECT_NAME} ${wxWidgets_LIBRARIES})
-
-if(APPLE)
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        RESOURCE "../../src/osx/carbon/wxmac.icns"
-        MACOSX_BUNDLE_ICON_FILE wxmac.icns
-        MACOSX_BUNDLE_COPYRIGHT "Copyright wxWidgets"
-        MACOSX_BUNDLE_GUI_IDENTIFIER "org.wxwidgets.minimal"
-        )
-endif()
+add_executable(${PROGRAM_NAME} ${SRCS})
+target_link_libraries(${PROGRAM_NAME} PRIVATE ${wxWidgets_LIBRARIES})

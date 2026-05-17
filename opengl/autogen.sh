@@ -14,4 +14,9 @@ PYENV_VERSION="$PYTHON_VERSION" \
     -I "${WX_SRC_DIR}"/build/bakefiles/wxpresets/presets \
     -DOUT_OF_TREE_MAKEFILES=1
 
+if test -e Makefile; then
+    make WX_CONFIG="$WX_INSTALL_DIR/bin/wx-config" \
+        LDFLAGS="-L$WX_INSTALL_DIR/lib -Wl,-rpath,$WX_INSTALL_DIR/lib"
+fi
+
 exit 0

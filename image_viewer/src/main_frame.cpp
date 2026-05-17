@@ -45,12 +45,12 @@ void MainFrame::CreateMenus()
 
     fileMenu->AppendSeparator();
 
-    fileMenu->Append(
-        wxID_EXIT, "E&xit\tCtrl+Q", "Sair do programa");
-
     fileMenu->AppendCheckItem(ID_FitToWindow,
                               "&Fit to Window\tCtrl+F",
                               "Reescalar imagem conforme a janela");
+    fileMenu->Append(
+        wxID_EXIT, "E&xit\tCtrl+Q", "Sair do programa");
+
     auto* helpMenu = new wxMenu;
     helpMenu->Append(wxID_ABOUT, "&About", "Sobre o programa");
 
@@ -89,18 +89,18 @@ void MainFrame::CreateToolbar()
 
     toolbar->AddSeparator();
 
+    // toolbar->AddTool(
+    //     wxID_EXIT,
+    //     "Exit",
+    //     wxArtProvider::GetBitmap(wxART_QUIT, wxART_TOOLBAR),
+    //     "Sair");
+
     toolbar->AddCheckTool(
         ID_FitToWindow,
         "Fit",
         wxArtProvider::GetBitmap(wxART_FIND, wxART_TOOLBAR),
         wxNullBitmap,
         "Reescalar imagem conforme a janela");
-
-    toolbar->AddTool(
-        wxID_EXIT,
-        "Exit",
-        wxArtProvider::GetBitmap(wxART_QUIT, wxART_TOOLBAR),
-        "Sair");
 
     toolbar->Realize();
 }

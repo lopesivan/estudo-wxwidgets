@@ -4,7 +4,7 @@ set(PROGRAM_NAME
     "penguin"
     CACHE STRING "Nome do executável")
 
-project(${PROGRAM_NAME} LANGUAGES CXX)
+project(${PROGRAM_NAME} LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

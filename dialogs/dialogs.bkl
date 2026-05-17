@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <makefile>
 
-    <include file="../../build/bakefiles/common_samples.bkl"/>
+    <include file="/home/ivan/.local/wxwidgets/wxWidgets-3.2.4-linux-cmake/build/bakefiles/common_samples.bkl"/>
 
     <set var="GENERIC_DIALOGS_IN_NATIVE_BUILDS">
         <if cond="OUT_OF_TREE_MAKEFILES=='1'">

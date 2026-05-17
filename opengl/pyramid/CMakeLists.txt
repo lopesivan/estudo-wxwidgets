@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 set(PROGRAM_NAME
-    "cube"
+    "pyramid"
     CACHE STRING "Nome do executável")
 
 project(${PROGRAM_NAME} LANGUAGES CXX)
@@ -29,7 +29,7 @@ if(wxWidgets_USE_FILE)
 endif()
 
 # ----------------------------------------------------------------------------
-set(SRCS cube.cpp)
+set(SRCS pyramid.cpp oglstuff.cpp mathstuff.cpp oglpfuncs.cpp)
 
 add_executable(${PROGRAM_NAME} ${SRCS})
 target_link_libraries(${PROGRAM_NAME} PRIVATE ${wxWidgets_LIBRARIES} OpenGL::GL

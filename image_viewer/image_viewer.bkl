@@ -10,7 +10,7 @@
 
     <include file="/home/ivan/.local/wxwidgets/wxWidgets-3.3.1-linux-cmake/build/bakefiles/common_samples.bkl"/>
 
-    <exe id="image" template="wx_sample" template_append="wx_append">
+    <exe id="image_viewer" template="wx_sample" template_append="wx_append">
         <sources>
             src/app.cpp
             src/main_frame.cpp

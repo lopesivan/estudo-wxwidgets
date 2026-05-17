@@ -21,7 +21,7 @@ set(V
 set(wxWidgets_ROOT_DIR "$ENV{HOME}/.local/wxwidgets/linux-cmake-wx-${V}")
 set(wxWidgets_CONFIG_EXECUTABLE "${wxWidgets_ROOT_DIR}/bin/wx-config")
 
-find_package(wxWidgets 3.2 REQUIRED COMPONENTS core base gl)
+find_package(wxWidgets 3.3 REQUIRED COMPONENTS core base gl)
 find_package(OpenGL REQUIRED)
 
 if(wxWidgets_USE_FILE)

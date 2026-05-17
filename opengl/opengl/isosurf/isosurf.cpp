@@ -30,7 +30,7 @@
 #include "wx/txtstrm.h"
 
 #include "isosurf.h"
-#include "../../sample.xpm"
+#include "sample.xpm"
 
 
 // global options which can be set through command-line options

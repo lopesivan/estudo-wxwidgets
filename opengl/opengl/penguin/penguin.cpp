@@ -22,7 +22,7 @@
 
 #include "penguin.h"
 
-#include "../../sample.xpm"
+#include "sample.xpm"
 
 // ---------------------------------------------------------------------------
 // MyApp

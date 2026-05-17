@@ -6,7 +6,6 @@ WX_BASE_DIR="${HOME}/.local/wxwidgets"
 WX_SRC_DIR="${WX_BASE_DIR}/wxWidgets-${V}-linux-cmake"
 WX_INSTALL_DIR="${WX_BASE_DIR}/linux-cmake-wx-${V}"
 PYTHON_VERSION="2.7.18"
-WX_CONFIG="$WX_INSTALL_DIR/bin/wx-config"
 
 # === Gerar Makefile via bakefile ===
 PYENV_VERSION="$PYTHON_VERSION" \
@@ -16,7 +15,8 @@ PYENV_VERSION="$PYTHON_VERSION" \
     -DOUT_OF_TREE_MAKEFILES=1
 
 if test -e Makefile; then
-    make WX_CONFIG=$WX_CONFIG
+    make WX_CONFIG="$WX_INSTALL_DIR/bin/wx-config" \
+        LDFLAGS="-L$WX_INSTALL_DIR/lib -Wl,-rpath,$WX_INSTALL_DIR/lib"
 fi
 
 exit 0

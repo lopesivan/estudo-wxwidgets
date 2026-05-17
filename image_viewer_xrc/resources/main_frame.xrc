@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource>
+  <object class="wxFrame" name="MainFrame">
+    <title>PNG Viewer</title>
+    <size>900,700</size>
+    <centered>1</centered>
+
+    <object class="wxMenuBar" name="main_menubar">
+      <object class="wxMenu" name="file_menu">
+        <label>&amp;File</label>
+
+        <object class="wxMenuItem" name="ID_OPEN">
+          <label>&amp;Open...\tCtrl+O</label>
+          <help>Carregar imagem PNG</help>
+        </object>
+
+        <object class="wxMenuItem" name="ID_FIT_TO_WINDOW">
+          <label>&amp;Fit to Window\tCtrl+F</label>
+          <help>Reescalar imagem conforme a janela</help>
+          <checkable>1</checkable>
+        </object>
+
+        <object class="separator"/>
+
+        <object class="wxMenuItem" name="wxID_EXIT">
+          <label>E&amp;xit\tCtrl+Q</label>
+          <help>Sair do programa</help>
+        </object>
+      </object>
+
+      <object class="wxMenu" name="help_menu">
+        <label>&amp;Help</label>
+        <object class="wxMenuItem" name="wxID_ABOUT">
+          <label>&amp;About</label>
+          <help>Sobre o programa</help>
+        </object>
+      </object>
+    </object>
+
+    <object class="wxToolBar" name="main_toolbar">
+      <style>wxTB_HORIZONTAL|wxTB_TEXT</style>
+
+      <object class="tool" name="ID_OPEN">
+        <label>Open</label>
+        <bitmap stock_id="wxART_FILE_OPEN"/>
+        <tooltip>Carregar imagem PNG</tooltip>
+      </object>
+
+      <object class="separator"/>
+
+      <object class="tool" name="ID_FIT_TO_WINDOW">
+        <label>Fit</label>
+        <bitmap stock_id="wxART_FIND"/>
+        <tooltip>Reescalar imagem conforme a janela</tooltip>
+        <toggle>1</toggle>
+      </object>
+    </object>
+
+    <object class="wxStatusBar" name="main_statusbar"/>
+
+    <object class="wxPanel" name="main_panel">
+      <object class="wxBoxSizer">
+        <orient>wxVERTICAL</orient>
+
+        <object class="sizeritem">
+          <option>1</option>
+          <flag>wxEXPAND|wxALL</flag>
+          <border>5</border>
+
+          <object class="wxPanel" name="ID_CANVAS_CONTAINER"/>
+        </object>
+      </object>
+    </object>
+  </object>
+</resource>

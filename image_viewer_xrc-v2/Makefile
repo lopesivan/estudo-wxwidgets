@@ -7,7 +7,7 @@ WX_LIB = ${HOME}/.local/wxwidgets/linux-cmake-wx-3.3.1/lib
 all: configure build run
 
 configure:
-	cmake -B build-$(OS) -S .
+	cmake -B build-$(OS) -S . -DCMAKE_EXE_LINKER_FLAGS="-Wl,-rpath,$(WX_LIB)"
 
 build:
 	cmake --build build-$(OS)
@@ -16,4 +16,4 @@ clean:
 	rm -rf build-$(OS)
 
 run:
-	LD_LIBRARY_PATH="$(WX_LIB):$$LD_LIBRARY_PATH" build-$(OS)/$(APP)
+	build-$(OS)/$(APP)

@@ -9,15 +9,13 @@
 
 #ifndef PYRSAMLE_H
 #define PYRSAMLE_H
-#include "oglstuff.h"
-#include "wx/glcanvas.h"
 
 // Define a new application
 class MyApp: public wxApp
 {
 public:
     MyApp(){}
-    bool OnInit() wxOVERRIDE;
+    bool OnInit() override;
 };
 
 
@@ -58,7 +56,7 @@ public:
 
     //Used just to know if we must end now because OGL 3.2 isn't available
     bool OglCtxAvailable()
-        {return m_oglContext != NULL;}
+        {return m_oglContext != nullptr;}
 
     //Init the OpenGL stuff
     bool oglInit();
@@ -83,7 +81,7 @@ enum
 {
     Pyramid_Quit = wxID_EXIT,
     Pyramid_About = wxID_ABOUT,
-    Pyramid_LogW = wxID_HIGHEST + 10
+    Pyramid_LogW = wxID_HIGHEST
 };
 
 #endif // PYRSAMLE_H

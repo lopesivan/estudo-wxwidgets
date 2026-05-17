@@ -4,18 +4,23 @@
 
 class ImageCanvas : public wxPanel
 {
-public:
+  public:
     explicit ImageCanvas(wxWindow* parent);
 
     bool LoadPng(const wxString& filename);
 
-private:
-    void OnPaint(wxPaintEvent& event);
+    void SetFitToWindow(bool enabled);
+    bool IsFitToWindow() const;
 
-private:
+  private:
+    void OnPaint(wxPaintEvent& event);
+    void OnSize(wxSizeEvent& event);
+
+  private:
     wxImage  m_image;
     wxBitmap m_bitmap;
 
+    bool m_fitToWindow{false};
+
     wxDECLARE_EVENT_TABLE();
 };
-

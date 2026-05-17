@@ -4,12 +4,18 @@
 
 class ImageCanvas;
 
-class MainFrame : public wxFrame
-{
+class MainFrame : public wxFrame {
 public:
-    explicit MainFrame(const wxString& imagePath);
+  explicit MainFrame(const wxString &imagePath);
 
 private:
-    ImageCanvas* m_canvas;
-};
+  void CreateMenus();
+  void CreateToolbar();
 
+  void OnOpen(wxCommandEvent &event);
+  void OnExit(wxCommandEvent &event);
+  void OnAbout(wxCommandEvent &event);
+
+private:
+  ImageCanvas *m_canvas{};
+};

@@ -1,17 +1,19 @@
-.PHONY: configure build clean run
+OS  = linux
+APP = image_viewer_xrc
+WX_LIB = ${HOME}/.local/wxwidgets/linux-cmake-wx-3.3.1/lib
+
+.PHONY: all configure build clean run
+
+all: configure build run
 
 configure:
-	cmake -B build-linux -S .
+	cmake -B build-$(OS) -S .
 
 build:
-	cmake --build build-linux
-	make -C build-linux copy_dlls
-
-deploy: configure build run
+	cmake --build build-$(OS)
 
 clean:
-	rm -rf build-linux
+	rm -rf build-$(OS)
 
 run:
-	linuxe build-win/image_viewer.exe
-
+	LD_LIBRARY_PATH="$(WX_LIB):$$LD_LIBRARY_PATH" build-$(OS)/$(APP)

@@ -14,6 +14,12 @@
   <add-flags>-Iformats</add-flags>
   <add-flags formats="gnu">-DWRITE_OPTIONS_FILE=1</add-flags>
 
+  <!-- Makefile raiz que chama os subprojetos -->
+  <add-flags files="opengl_samples.bkl" formats="gnu">
+    -oMakefile
+  </add-flags>
+
+  <!-- Makefiles de cada subprojeto -->
   <add-flags files="cube/cube.bkl,isosurf/isosurf.bkl,penguin/penguin.bkl,pyramid/pyramid.bkl"
              formats="gnu">
     -DOUT_OF_TREE_MAKEFILES=1 -o$(INPUT_FILE_DIR)/Makefile

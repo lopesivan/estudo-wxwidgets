@@ -21,7 +21,7 @@ set(V
 set(wxWidgets_ROOT_DIR "$ENV{HOME}/.local/wxwidgets/linux-cmake-wx-${V}")
 set(wxWidgets_CONFIG_EXECUTABLE "${wxWidgets_ROOT_DIR}/bin/wx-config")
 
-find_package(wxWidgets 3.3 REQUIRED COMPONENTS core base)
+find_package(wxWidgets 3.3 REQUIRED COMPONENTS xrc xml core base)
 
 if(wxWidgets_USE_FILE)
   include(${wxWidgets_USE_FILE})
@@ -32,3 +32,10 @@ set(SRCS src/app.cpp src/main_frame.cpp src/image_canvas.cpp)
 
 add_executable(${PROGRAM_NAME} ${SRCS})
 target_link_libraries(${PROGRAM_NAME} PRIVATE ${wxWidgets_LIBRARIES})
+
+add_custom_command(
+  TARGET ${PROGRAM_NAME}
+  POST_BUILD
+  COMMAND
+    ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/resources
+    ${CMAKE_CURRENT_BINARY_DIR}/resources)

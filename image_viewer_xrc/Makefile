@@ -1,17 +1,17 @@
 .PHONY: configure build clean run
 
 configure:
-	cmake -B build-win -S . -DCMAKE_TOOLCHAIN_FILE=toolchains/mingw64.cmake
+	cmake -B build-linux -S .
 
 build:
-	cmake --build build-win
-	make -C build-win copy_dlls
+	cmake --build build-linux
+	make -C build-linux copy_dlls
 
 deploy: configure build run
 
 clean:
-	rm -rf build-win
+	rm -rf build-linux
 
 run:
-	wine build-win/image_viewer.exe
+	linuxe build-win/image_viewer.exe
 

@@ -1,0 +1,41 @@
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+
+set(PROGRAM_NAME
+    "image_viewer_xrc"
+    CACHE STRING "Nome do executável")
+
+project(${PROGRAM_NAME} LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# ----------------------------------------------------------------------------
+# wxWidgets — instalação local via awx
+# ----------------------------------------------------------------------------
+set(V
+    "3.3.1"
+    CACHE STRING "Versão do wxWidgets")
+set(wxWidgets_ROOT_DIR "$ENV{HOME}/.local/wxwidgets/linux-cmake-wx-${V}")
+set(wxWidgets_CONFIG_EXECUTABLE "${wxWidgets_ROOT_DIR}/bin/wx-config")
+
+find_package(wxWidgets 3.3 REQUIRED COMPONENTS xrc xml core base)
+
+if(wxWidgets_USE_FILE)
+  include(${wxWidgets_USE_FILE})
+endif()
+
+# ----------------------------------------------------------------------------
+set(SRCS src/app.cpp src/main_frame.cpp src/image_canvas.cpp)
+
+add_executable(${PROGRAM_NAME} ${SRCS})
+target_link_libraries(${PROGRAM_NAME} PRIVATE ${wxWidgets_LIBRARIES})
+
+add_custom_command(
+  TARGET ${PROGRAM_NAME}
+  POST_BUILD
+  COMMAND
+    ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/resources
+    ${CMAKE_CURRENT_BINARY_DIR}/resources)

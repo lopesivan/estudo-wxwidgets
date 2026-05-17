@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-V=3.2.4
+V=3.3.1
 WX_BASE_DIR="${HOME}/.local/wxwidgets"
 WX_SRC_DIR="${WX_BASE_DIR}/wxWidgets-${V}-linux-cmake"
 WX_INSTALL_DIR="${WX_BASE_DIR}/linux-cmake-wx-${V}"

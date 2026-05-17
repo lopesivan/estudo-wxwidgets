@@ -7,6 +7,8 @@ build:
 	cmake --build build-win
 	make -C build-win copy_dlls
 
+deploy: configure build run
+
 clean:
 	rm -rf build-win
 

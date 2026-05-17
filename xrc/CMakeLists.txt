@@ -21,7 +21,15 @@ set(V
 set(wxWidgets_ROOT_DIR "$ENV{HOME}/.local/wxwidgets/linux-cmake-wx-${V}")
 set(wxWidgets_CONFIG_EXECUTABLE "${wxWidgets_ROOT_DIR}/bin/wx-config")
 
-find_package(wxWidgets 3.2 REQUIRED COMPONENTS core base)
+find_package(
+  wxWidgets 3.2 REQUIRED
+  COMPONENTS aui
+             ribbon
+             xrc
+             html
+             core
+             xml
+             base)
 
 if(wxWidgets_USE_FILE)
   include(${wxWidgets_USE_FILE})

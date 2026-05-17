@@ -19,6 +19,6 @@
           -DWRITE_OPTIONS_FILE=1
   </add-flags>
   <!-- <add-flags formats="gnu"> -->
-  <!--         -DWX_CONFIG=${HOME}/.local/wxwidgets/linux-cmake-wx-3.2.4/bin/wx-config -->
+  <!--         -DWX_CONFIG=${HOME}/.local/wxwidgets/linux-cmake-wx-3.3.1/bin/wx-config -->
   <!-- </add-flags> -->
 </bakefile-gen>

@@ -1,6 +1,0 @@
-# local
-cmake -DUSE_CUSTOM_WXWIDGETS=ON -DWX_CUSTOM_INSTALL_DIR=/home/ivan/wx/linux-wx-3.2.4 .
-
-# sys
-
-cmake .

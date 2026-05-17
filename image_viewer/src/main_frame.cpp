@@ -2,8 +2,8 @@
 #include <wx/filedlg.h>
 #include <wx/filename.h>
 
-#include "main_frame.h"
 #include "image_canvas.h"
+#include "main_frame.h"
 
 enum
 {
@@ -89,18 +89,19 @@ void MainFrame::CreateToolbar()
 
     toolbar->AddSeparator();
 
-    toolbar->AddTool(
-        wxID_EXIT,
-        "Exit",
-        wxArtProvider::GetBitmap(wxART_QUIT, wxART_TOOLBAR),
-        "Sair");
-
     toolbar->AddCheckTool(
         ID_FitToWindow,
         "Fit",
         wxArtProvider::GetBitmap(wxART_FIND, wxART_TOOLBAR),
         wxNullBitmap,
         "Reescalar imagem conforme a janela");
+
+    toolbar->AddTool(
+        wxID_EXIT,
+        "Exit",
+        wxArtProvider::GetBitmap(wxART_QUIT, wxART_TOOLBAR),
+        "Sair");
+
     toolbar->Realize();
 }
 

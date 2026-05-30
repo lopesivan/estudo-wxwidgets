@@ -1,0 +1,3 @@
+$ bear -- make
+`wx-config --cxx`  `wx-config --cppflags` -Wall -g   main.cpp  `wx-config --libs` -o main
+

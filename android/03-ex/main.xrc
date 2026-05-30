@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource>
+  <object class="wxFrame" name="MainFrame">
+    <title>Controle ADB - Android</title>
+    <size>350,250</size>
+    <object class="wxPanel" name="panel">
+      <object class="wxBoxSizer">
+        <orient>wxVERTICAL</orient>
+        <object class="sizeritem">
+          <flag>wxALL|wxEXPAND</flag>
+          <border>20</border>
+          <object class="wxGridSizer">
+            <cols>3</cols>
+            <rows>3</rows>
+            <vgap>5</vgap>
+            <hgap>5</hgap>
+            <!-- linha 1 -->
+            <object class="sizeritem">
+              <flag>wxEXPAND</flag>
+              <object class="wxStaticText" name="empty1">
+                <label/>
+              </object>
+            </object>
+            <object class="sizeritem">
+              <flag>wxEXPAND</flag>
+              <object class="wxButton" name="btnUp">
+                <label>Cima</label>
+              </object>
+            </object>
+            <object class="sizeritem">
+              <flag>wxEXPAND</flag>
+              <object class="wxStaticText" name="empty2">
+                <label/>
+              </object>
+            </object>
+            <!-- linha 2 -->
+            <object class="sizeritem">
+              <flag>wxEXPAND</flag>
+              <object class="wxButton" name="btnLeft">
+                <label>Esquerda</label>
+              </object>
+            </object>
+            <object class="sizeritem">
+              <flag>wxEXPAND</flag>
+              <object class="wxButton" name="btnOk">
+                <label>OK</label>
+              </object>
+            </object>
+            <object class="sizeritem">
+              <flag>wxEXPAND</flag>
+              <object class="wxButton" name="btnRight">
+                <label>Direita</label>
+              </object>
+            </object>
+            <!-- linha 3 -->
+            <object class="sizeritem">
+              <flag>wxEXPAND</flag>
+              <object class="wxStaticText" name="empty3">
+                <label/>
+              </object>
+            </object>
+            <object class="sizeritem">
+              <flag>wxEXPAND</flag>
+              <object class="wxButton" name="btnDown">
+                <label>Baixo</label>
+              </object>
+            </object>
+            <object class="sizeritem">
+              <flag>wxEXPAND</flag>
+              <object class="wxStaticText" name="empty4">
+                <label/>
+              </object>
+            </object>
+          </object>
+        </object>
+      </object>
+    </object>
+  </object>
+</resource>

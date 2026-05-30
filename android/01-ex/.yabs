@@ -34,5 +34,15 @@ return {
       type = "lua",
       desc = "build",
     },
+    ['build-gitignore.sh "bear -- make "'] = {
+      command = function()
+        app("build-gitignore.sh", {
+          "bear -- make",
+        })
+      end,
+      condition = file_exists("Makefile"),
+      type = "lua",
+      desc = "build-gitignore.sh",
+    },
   },
 }

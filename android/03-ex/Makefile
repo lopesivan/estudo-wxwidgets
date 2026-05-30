@@ -1,19 +1,23 @@
-sources     = $(wildcard *.cpp)
-program     = $(sources:.cpp=)
-objects     = $(sources:.cpp=.o)
+program  = main
+sources  = main.cpp main.xrc.cpp
+objects  = $(sources:.cpp=.o)
+CXX      = $(shell wx-config --cxx)
+WXRC     = wxrc
+WARNINGS = -Wall
+GDBFLAGS = -g
+LDLIBS   = $(shell wx-config --libs)
+CXXFLAGS = $(shell wx-config --cppflags) $(WARNINGS) $(GDBFLAGS)
 
-CXX         = `wx-config --cxx`
-WARNINGS    = -Wall
-GDBFLAGS    = -g
-LDLIBS      = `wx-config --libs`
+all: $(program)
 
-CPPFLAGS    = `wx-config --cppflags` $(WARNINGS) $(GDBFLAGS)
-#$(INCLUDE) $(DEFINEFLAGS)
+$(program): $(objects)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDLIBS)
 
-all:          $(program)
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(program):
+main.xrc.cpp: main.xrc
+	$(WXRC) $< --cpp-code --output=$@ --function=InitXmlResource
 
 clean:
-	/bin/rm -rf $(program) $(objects) tags *.orig
-
+	/bin/rm -rf $(program) $(objects) main.xrc.cpp tags *.orig

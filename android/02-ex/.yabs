@@ -1,0 +1,48 @@
+local function app(cmd, args)
+  require("config.nvim_dev").app(cmd, args)
+end
+
+local file_exists = require("yabs.conditions").file_exists
+
+local function input_default(prompt, default)
+  local value = vim.fn.input(prompt, default)
+
+  if value == nil or value == "" then
+    return default
+  end
+
+  return value
+end
+
+return {
+  tasks = {
+    ["run"] = {
+      command = function()
+        app("./main", {})
+      end,
+      condition = file_exists("main"),
+      type = "lua",
+    },
+    ["bear -- make"] = {
+      command = function()
+        app("bear", {
+          "--",
+          "make",
+        })
+      end,
+      condition = file_exists("Makefile"),
+      type = "lua",
+      desc = "build",
+    },
+    ['build-gitignore.sh "bear -- make "'] = {
+      command = function()
+        app("build-gitignore.sh", {
+          "bear -- make",
+        })
+      end,
+      condition = file_exists("Makefile"),
+      type = "lua",
+      desc = "build-gitignore.sh",
+    },
+  },
+}

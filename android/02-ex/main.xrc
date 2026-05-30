@@ -18,7 +18,7 @@
             <object class="sizeritem">
               <flag>wxEXPAND</flag>
               <object class="wxStaticText" name="empty1">
-                <label></label>
+                <label/>
               </object>
             </object>
             <object class="sizeritem">
@@ -30,7 +30,7 @@
             <object class="sizeritem">
               <flag>wxEXPAND</flag>
               <object class="wxStaticText" name="empty2">
-                <label></label>
+                <label/>
               </object>
             </object>
             <!-- linha 2 -->
@@ -56,7 +56,7 @@
             <object class="sizeritem">
               <flag>wxEXPAND</flag>
               <object class="wxStaticText" name="empty3">
-                <label></label>
+                <label/>
               </object>
             </object>
             <object class="sizeritem">
@@ -68,7 +68,7 @@
             <object class="sizeritem">
               <flag>wxEXPAND</flag>
               <object class="wxStaticText" name="empty4">
-                <label></label>
+                <label/>
               </object>
             </object>
           </object>

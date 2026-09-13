@@ -1,8 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        isosurf.h
-// Purpose:     wxGLCanvas demo program
+// Purpose:     wxGLCanvas demo program (OBJ loader version)
 // Author:      Brian Paul (original gltk version), Wolfram Gloger
-// Modified by: Julian Smart
+// Modified by: Julian Smart, Francesco Montorsi
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -22,9 +22,7 @@
 #   include <GL/gl.h>
 #endif
 
-// the maximum number of vertex in the loaded .dat file
-#define MAXVERTS     10000
-
+#include <vector>
 
 // Define a new application type
 class MyApp : public wxApp
@@ -54,19 +52,27 @@ public:
     void OnChar(wxKeyEvent& event);
     void OnMouseEvent(wxMouseEvent& event);
 
-    void LoadSurface(const wxString& filename);
+    bool LoadOBJ(const wxString& filename);
     void InitMaterials();
     void InitGL();
 
 private:
     wxGLContext* m_glRC;
 
-    GLfloat m_verts[MAXVERTS][3];
-    GLfloat m_norms[MAXVERTS][3];
-    GLint m_numverts;
+    // geometry (indexed triangle list)
+    std::vector<GLfloat> m_positions;   // 3 * numVertices
+    std::vector<GLfloat> m_normals;     // 3 * numVertices
+    std::vector<GLuint>  m_indices;     // 3 * numTriangles
 
+    // bounding sphere to auto-fit the model in view
+    GLfloat m_center[3];
+    GLfloat m_radius;
+
+    // view state
     GLfloat m_xrot;
     GLfloat m_yrot;
+    GLfloat m_zoom;
+    GLfloat m_cameraDist;   // computed in OnSize, used in OnPaint
 
     wxDECLARE_EVENT_TABLE();
 };
@@ -94,4 +100,3 @@ private :
 
 
 #endif // _WX_ISOSURF_H_
-

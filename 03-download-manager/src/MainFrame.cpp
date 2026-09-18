@@ -1,8 +1,8 @@
 #include "MainFrame.hpp"
 
+#include <wx/xrc/xmlres.h>
 #include <wx/filename.h>
 #include <wx/stdpaths.h>
-#include <wx/xrc/xmlres.h>
 
 MainFrame::MainFrame()
 {
@@ -13,58 +13,42 @@ MainFrame::MainFrame()
     xrcPath.AppendDir("resources");
     xrcPath.SetFullName("main.xrc");
 
-    if(!wxXmlResource::Get()->Load(xrcPath.GetFullPath()))
+    if (!wxXmlResource::Get()->Load(xrcPath.GetFullPath()))
+    {
         wxLogError("Falha ao carregar %s", xrcPath.GetFullPath());
+    }
 
     wxXmlResource::Get()->LoadFrame(this, nullptr, "MainFrame");
 
     SetMinClientSize(FromDIP(wxSize(900, 520)));
 
-    m_list         = XRCCTRL(*this, "downloadList", wxListCtrl);
+    m_list = XRCCTRL(*this, "downloadList", wxDataViewListCtrl);
     m_categoryList = XRCCTRL(*this, "categoryList", wxListBox);
 
-    if(m_categoryList)
+    if (m_categoryList)
     {
-        // Define o tamanho mínimo em DPI escalado para evitar corte
-        // dos textos
-        m_categoryList->SetMinSize(FromDIP(wxSize(200, -1)));
+        m_categoryList->SetMinSize(FromDIP(wxSize(190, -1)));
         m_categoryList->SetSelection(0);
     }
 
-    if(m_list)
+    if (m_list)
     {
-        // Mantenha Tamanho, Progresso e Velocidade à direita
-        // (cabeçalho e dados acompanham)
-        m_list->InsertColumn(
-            0, "Arquivo", wxLIST_FORMAT_LEFT, FromDIP(200));
-        m_list->InsertColumn(
-            1, "Tamanho", wxLIST_FORMAT_RIGHT, FromDIP(110));
-        m_list->InsertColumn(
-            2, "Progresso", wxLIST_FORMAT_RIGHT, FromDIP(110));
-        m_list->InsertColumn(
-            3, "Velocidade", wxLIST_FORMAT_RIGHT, FromDIP(130));
-        m_list->InsertColumn(
-            4, "Estado", wxLIST_FORMAT_LEFT, FromDIP(120));
+        // Define as colunas alinhando perfeitamente o cabeçalho e os dados
+        m_list->AppendTextColumn("Arquivo",    wxDATAVIEW_CELL_INERT, FromDIP(200), wxALIGN_LEFT);
+        m_list->AppendTextColumn("Tamanho",    wxDATAVIEW_CELL_INERT, FromDIP(110), wxALIGN_RIGHT);
+        m_list->AppendProgressColumn("Progresso", wxDATAVIEW_CELL_INERT, FromDIP(110), wxALIGN_CENTER);
+        m_list->AppendTextColumn("Velocidade", wxDATAVIEW_CELL_INERT, FromDIP(120), wxALIGN_RIGHT);
+        m_list->AppendTextColumn("Estado",     wxDATAVIEW_CELL_INERT, FromDIP(120), wxALIGN_LEFT);
 
         PopulateFakeData();
-
-        // DICA EXTRA: Auto-ajusta as colunas considerando a largura
-        // do título E do conteúdo
-        for(int i = 0; i < m_list->GetColumnCount(); ++i)
-        {
-            // Garante espaço mínimo para o cabeçalho não cortar
-            m_list->SetColumnWidth(i, wxLIST_AUTOSIZE_USEHEADER);
-        }
     }
 
-    if(wxStatusBar* status = GetStatusBar())
+    if (wxStatusBar* status = GetStatusBar())
     {
         status->SetStatusText("3 downloads", 0);
         status->SetStatusText("17.2 MB/s", 1);
     }
 
-    // Atualiza o layout do frame para aplicar os tamanhos mínimos
-    // definidos
     Layout();
 
     Bind(wxEVT_MENU, &MainFrame::OnExit, this, wxID_EXIT);
@@ -73,26 +57,34 @@ MainFrame::MainFrame()
 
 void MainFrame::PopulateFakeData()
 {
-    struct Row
-    {
-        wxString file, size, prog, speed, state;
-    };
+    wxVector<wxVariant> row;
 
-    const Row rows[] = {
-        {"ubuntu.iso", "5.8 GB", "72%", "12.4 MB/s", "Baixando"},
-        {"manual.pdf", "24 MB", "100%", "--", "Completo"},
-        {"video.mp4", "850 MB", "21%", "4.8 MB/s", "Baixando"},
-    };
+    // Linha 1: ubuntu.iso
+    row.clear();
+    row.push_back("ubuntu.iso");
+    row.push_back("5.8 GB");
+    row.push_back(long(72)); // Valor numérico para a barra de progresso nativa
+    row.push_back("12.4 MB/s");
+    row.push_back("Baixando");
+    m_list->AppendItem(row);
 
-    for(const auto& r : rows)
-    {
-        long idx =
-            m_list->InsertItem(m_list->GetItemCount(), r.file);
-        m_list->SetItem(idx, 1, r.size);
-        m_list->SetItem(idx, 2, r.prog);
-        m_list->SetItem(idx, 3, r.speed);
-        m_list->SetItem(idx, 4, r.state);
-    }
+    // Linha 2: manual.pdf
+    row.clear();
+    row.push_back("manual.pdf");
+    row.push_back("24 MB");
+    row.push_back(long(100));
+    row.push_back("--");
+    row.push_back("Completo");
+    m_list->AppendItem(row);
+
+    // Linha 3: video.mp4
+    row.clear();
+    row.push_back("video.mp4");
+    row.push_back("850 MB");
+    row.push_back(long(21));
+    row.push_back("4.8 MB/s");
+    row.push_back("Baixando");
+    m_list->AppendItem(row);
 }
 
 void MainFrame::OnExit(wxCommandEvent&)
@@ -102,7 +94,6 @@ void MainFrame::OnExit(wxCommandEvent&)
 
 void MainFrame::OnAbout(wxCommandEvent&)
 {
-    wxMessageBox("Download Manager - prototipo wxWidgets + XRC",
-                 "Sobre",
-                 wxOK | wxICON_INFORMATION);
+    wxMessageBox("Download Manager - protótipo wxWidgets + XRC",
+                 "Sobre", wxOK | wxICON_INFORMATION);
 }

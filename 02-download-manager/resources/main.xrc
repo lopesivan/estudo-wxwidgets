@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<resource xmlns="http://www.wxwidgets.org/wxxrc"
-          version="2.5.3.0">
+<resource xmlns="http://www.wxwidgets.org/wxxrc" version="2.5.3.0">
 
     <object class="wxFrame" name="MainFrame">
         <title>Download Manager</title>
@@ -73,6 +72,7 @@
             <object class="tool" name="ID_ADD_DOWNLOAD">
                 <label>Adicionar</label>
                 <tooltip>Adicionar novo download</tooltip>
+                <bitmap stock_id="wxART_NEW"/>
             </object>
 
             <object class="separator"/>
@@ -80,16 +80,19 @@
             <object class="tool" name="ID_START">
                 <label>Iniciar</label>
                 <tooltip>Iniciar ou continuar download</tooltip>
+                <bitmap stock_id="wxART_GO_FORWARD"/>
             </object>
 
             <object class="tool" name="ID_PAUSE">
                 <label>Pausar</label>
                 <tooltip>Pausar download</tooltip>
+                <bitmap stock_id="wxART_EXECUTABLE_FILE"/>
             </object>
 
             <object class="tool" name="ID_CANCEL">
                 <label>Cancelar</label>
                 <tooltip>Cancelar download</tooltip>
+                <bitmap stock_id="wxART_STOP"/>
             </object>
 
             <object class="separator"/>
@@ -97,6 +100,7 @@
             <object class="tool" name="ID_REMOVE">
                 <label>Remover</label>
                 <tooltip>Remover download da lista</tooltip>
+                <bitmap stock_id="wxART_DELETE"/>
             </object>
 
         </object>
@@ -109,150 +113,169 @@
         <object class="wxPanel" name="mainPanel">
 
             <object class="wxBoxSizer">
-                <orient>wxVERTICAL</orient>
+                <orient>wxHORIZONTAL</orient>
 
-                <!-- Lista de downloads -->
-
+                <!-- Sidebar de Categorias (Aumentado para 200px) -->
                 <object class="sizeritem">
-                    <option>1</option>
+                    <option>0</option>
                     <flag>wxEXPAND|wxALL</flag>
                     <border>8</border>
 
-                    <object class="wxListCtrl" name="downloadList">
-                        <style>
-                            wxLC_REPORT|
-                            wxLC_SINGLE_SEL|
-                            wxLC_HRULES|
-                            wxLC_VRULES
-                        </style>
+                    <object class="wxListBox" name="categoryList">
+                        <size>200,-1</size>
+                        <content>
+                            <item>Todos os Downloads</item>
+                            <item>Baixando</item>
+                            <item>Concluídos</item>
+                            <item>Pausados</item>
+                        </content>
                     </object>
                 </object>
 
-
-                <!-- Informações -->
-
+                <!-- Conteúdo Principal -->
                 <object class="sizeritem">
-                    <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+                    <option>1</option>
+                    <flag>wxEXPAND|wxTOP|wxBOTTOM|wxRIGHT</flag>
                     <border>8</border>
 
-                    <object class="wxStaticBoxSizer">
+                    <object class="wxBoxSizer">
                         <orient>wxVERTICAL</orient>
-                        <label>Download selecionado</label>
 
-
-                        <!-- URL -->
-
+                        <!-- Lista de downloads -->
                         <object class="sizeritem">
-                            <flag>wxEXPAND|wxALL</flag>
-                            <border>5</border>
+                            <option>1</option>
+                            <flag>wxEXPAND|wxBOTTOM</flag>
+                            <border>8</border>
 
-                            <object class="wxBoxSizer">
-                                <orient>wxHORIZONTAL</orient>
-
-                                <object class="sizeritem">
-                                    <flag>wxALIGN_CENTER_VERTICAL|wxRIGHT</flag>
-                                    <border>8</border>
-
-                                    <object class="wxStaticText">
-                                        <label>URL:</label>
-                                    </object>
-                                </object>
-
-                                <object class="sizeritem">
-                                    <option>1</option>
-                                    <flag>wxEXPAND</flag>
-
-                                    <object class="wxTextCtrl"
-                                            name="downloadUrl">
-                                        <style>wxTE_READONLY</style>
-                                    </object>
-                                </object>
-
+                            <object class="wxListCtrl" name="downloadList">
+                                <style>
+                                    wxLC_REPORT|
+                                    wxLC_SINGLE_SEL|
+                                    wxLC_HRULES|
+                                    wxLC_VRULES
+                                </style>
                             </object>
                         </object>
 
 
-                        <!-- Destino -->
-
+                        <!-- Informações do Download Selecionado -->
                         <object class="sizeritem">
-                            <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
-                            <border>5</border>
+                            <flag>wxEXPAND</flag>
 
-                            <object class="wxBoxSizer">
-                                <orient>wxHORIZONTAL</orient>
+                            <object class="wxStaticBoxSizer">
+                                <orient>wxVERTICAL</orient>
+                                <label>Download selecionado</label>
 
+                                <!-- URL -->
                                 <object class="sizeritem">
-                                    <flag>wxALIGN_CENTER_VERTICAL|wxRIGHT</flag>
-                                    <border>8</border>
+                                    <flag>wxEXPAND|wxALL</flag>
+                                    <border>5</border>
 
-                                    <object class="wxStaticText">
-                                        <label>Destino:</label>
+                                    <object class="wxBoxSizer">
+                                        <orient>wxHORIZONTAL</orient>
+
+                                        <object class="sizeritem">
+                                            <flag>wxALIGN_CENTER_VERTICAL|wxRIGHT</flag>
+                                            <border>8</border>
+
+                                            <object class="wxStaticText">
+                                                <label>URL:</label>
+                                            </object>
+                                        </object>
+
+                                        <object class="sizeritem">
+                                            <option>1</option>
+                                            <flag>wxEXPAND</flag>
+
+                                            <object class="wxTextCtrl" name="downloadUrl">
+                                                <style>wxTE_READONLY</style>
+                                            </object>
+                                        </object>
+
                                     </object>
                                 </object>
 
-                                <object class="sizeritem">
-                                    <option>1</option>
-                                    <flag>wxEXPAND</flag>
 
-                                    <object class="wxTextCtrl"
-                                            name="downloadDestination">
-                                        <style>wxTE_READONLY</style>
+                                <!-- Destino -->
+                                <object class="sizeritem">
+                                    <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+                                    <border>5</border>
+
+                                    <object class="wxBoxSizer">
+                                        <orient>wxHORIZONTAL</orient>
+
+                                        <object class="sizeritem">
+                                            <flag>wxALIGN_CENTER_VERTICAL|wxRIGHT</flag>
+                                            <border>8</border>
+
+                                            <object class="wxStaticText">
+                                                <label>Destino:</label>
+                                            </object>
+                                        </object>
+
+                                        <object class="sizeritem">
+                                            <option>1</option>
+                                            <flag>wxEXPAND</flag>
+
+                                            <object class="wxTextCtrl" name="downloadDestination">
+                                                <style>wxTE_READONLY</style>
+                                            </object>
+                                        </object>
+
                                     </object>
                                 </object>
 
-                            </object>
-                        </object>
 
-
-                        <!-- Barra de progresso -->
-
-                        <object class="sizeritem">
-                            <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
-                            <border>5</border>
-
-                            <object class="wxGauge" name="downloadProgress">
-                                <range>100</range>
-                                <value>0</value>
-                            </object>
-
-                        </object>
-
-
-                        <!-- Informações -->
-
-                        <object class="sizeritem">
-                            <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
-                            <border>5</border>
-
-                            <object class="wxBoxSizer">
-                                <orient>wxHORIZONTAL</orient>
-
+                                <!-- Barra de progresso -->
                                 <object class="sizeritem">
-                                    <option>1</option>
+                                    <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+                                    <border>5</border>
 
-                                    <object class="wxStaticText"
-                                            name="downloadSize">
-                                        <label>0 B / 0 B</label>
+                                    <object class="wxGauge" name="downloadProgress">
+                                        <range>100</range>
+                                        <value>0</value>
                                     </object>
                                 </object>
 
+
+                                <!-- Informações Distribuídas via Proporção -->
                                 <object class="sizeritem">
-                                    <flag>wxRIGHT</flag>
-                                    <border>20</border>
+                                    <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+                                    <border>5</border>
 
-                                    <object class="wxStaticText"
-                                            name="downloadSpeed">
-                                        <label>0 B/s</label>
+                                    <object class="wxBoxSizer">
+                                        <orient>wxHORIZONTAL</orient>
+
+                                        <object class="sizeritem">
+                                            <option>1</option>
+                                            <flag>wxALIGN_CENTER_VERTICAL</flag>
+
+                                            <object class="wxStaticText" name="downloadSize">
+                                                <label>0 B / 0 B</label>
+                                            </object>
+                                        </object>
+
+                                        <object class="sizeritem">
+                                            <option>1</option>
+                                            <flag>wxALIGN_CENTER_VERTICAL</flag>
+
+                                            <object class="wxStaticText" name="downloadSpeed">
+                                                <style>wxALIGN_CENTER_HORIZONTAL</style>
+                                                <label>0 B/s</label>
+                                            </object>
+                                        </object>
+
+                                        <object class="sizeritem">
+                                            <option>1</option>
+                                            <flag>wxALIGN_CENTER_VERTICAL</flag>
+
+                                            <object class="wxStaticText" name="downloadEta">
+                                                <style>wxALIGN_RIGHT</style>
+                                                <label>ETA: --:--</label>
+                                            </object>
+                                        </object>
+
                                     </object>
-                                </object>
-
-                                <object class="sizeritem">
-
-                                    <object class="wxStaticText"
-                                            name="downloadEta">
-                                        <label>ETA: --:--</label>
-                                    </object>
-
                                 </object>
 
                             </object>

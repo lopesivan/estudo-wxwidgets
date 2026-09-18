@@ -1,18 +1,20 @@
-Aqui está a tradução completa do artigo mantendo todo o código-fonte original em C++ intacto:
+Aqui está a tradução completa do artigo mantendo o código C++ original intacto:
 
 ---
 
-# O básico de Layout no wxWidgets: Box Sizers — DevMindscape
+# Manipulando Operações de Área de Transferência (Clipboard) em Controles de Texto do wxWidgets — DevMindscape
 
-Vamos falar sobre layout. Este é um conceito fundamental em qualquer tipo de programação de interfaces visuais (UI), e o desenvolvimento de aplicações desktop com o wxWidgets não é diferente.
+Lidar com tarefas comuns de área de transferência nos seus campos de texto é indispensável para qualquer aplicação séria que precise aceitar entrada de teclado dos usuários[cite: 1]. Surpreendentemente, isso não é tão simples no wxWidgets, especialmente considerando as diferenças entre plataformas (Linux, Mac e Windows)[cite: 1].
+
+Eu explico o problema em detalhes no meu vídeo sobre *Text Fields* (no capítulo “Clipboard Operations”)[cite: 1]. No tutorial de *Menus*, falo sobre menus em geral e sobre a construção do menu *Edit* com os comandos de área de transferência em particular[cite: 1].
+
+Confira esses recursos se precisar de mais informações, ou continue lendo para ver a solução do problema da área de transferência no wxWidgets[cite: 1].
 
 ---
 
-## Posicionamento Padrão
+## Campos de Texto e o Menu Principal
 
-Layout trata de organizar os elementos da sua interface na janela. Embora você possa fazer isso especificando posições absolutas, essa costuma ser uma má ideia. O ideal é que seus controles fiquem visivelmente agradáveis em diferentes tamanhos de janela e que eles se estiquem e se movam quando o usuário redimensionar a aplicação.
-
-Vamos começar com uma aplicação wxWidgets bem básica:
+Aqui está uma aplicação wxWidgets mínima com um campo de texto de várias linhas e um menu *Edit*[cite: 1]:
 
 ```cpp
 #include <wx/wx.h>
@@ -37,232 +39,117 @@ bool MyApp::OnInit() {
 
 MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(nullptr, wxID_ANY, title, pos, size) {
+    wxMenuBar *menuBar = new wxMenuBar();
+    wxMenu *editMenu = new wxMenu();
+
+    editMenu->Append(wxID_UNDO);
+    editMenu->Append(wxID_REDO);
+    editMenu->AppendSeparator();
+    editMenu->Append(wxID_CUT);
+    editMenu->Append(wxID_COPY);
+    editMenu->Append(wxID_PASTE);
+
+    menuBar->Append(editMenu, "&Edit");
+    SetMenuBar(menuBar);
+
+    auto textField = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+
+    SetMinClientSize(FromDIP(wxSize(400,300)));
 }
 
 ```
 
-O que temos aqui é uma classe de aplicação simples e uma janela principal (*frame*) vazia. Esse é o mínimo necessário para um aplicativo desktop funcional que rode nas principais plataformas (Windows, Linux e Mac).
-
-Vamos adicionar alguns controles, começando por um painel colorido simples. Coloque este código dentro do construtor de `MyFrame`:
-
-```cpp
-auto panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-panel->SetBackgroundColour(wxColour(200, 100, 100));
-
-```
-
-Passar `this` (que aponta para o objeto `MyFrame`) como o primeiro parâmetro do construtor do painel o torna um filho (*child*) da janela principal. Isso também transfere a posse do objeto do painel para o próprio framework wxWidgets. Significa que não precisamos chamar `delete` no objeto do painel, mesmo tendo-o construído usando o operador `new`.
-
-O parâmetro `wxID_ANY` indica que não nos importamos com o ID do painel e deixamos o framework gerá-lo. Os dois parâmetros seguintes especificam o tamanho e a posição do controle. Não colocamos nenhum valor absoluto ali; apenas usamos os identificadores padrões.
-
-Curiosamente, o painel preenche toda a janela e se estica quando ela é redimensionada. Isso acontece porque, com apenas um controle na janela, o framework faz o esticamento automaticamente. Se adicionarmos outro controle, até mesmo um simples botão, os resultados mudam totalmente:
-
-```cpp
-auto panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-panel->SetBackgroundColour(wxColour(200, 100, 100));
-auto button = new wxButton(this, wxID_ANY, "Click Me!");
-
-```
-
-Agora não há mais esticamento, e os controles mantêm seus tamanhos e posições padrão. O framework não oferece mais o redimensionamento automático, e precisamos programar as regras de layout por conta própria.
-
-Poderíamos aplicar um posicionamento absoluto apenas definindo valores fixos em pixels:
-
-```cpp
-auto panel = new wxPanel(this, wxID_ANY, FromDIP(wxPoint(10, 10)), FromDIP(wxSize(200, 100)));
-panel->SetBackgroundColour(wxColour(200, 100, 100));
-auto button = new wxButton(this, wxID_ANY, "Click Me!", FromDIP(wxPoint(10, 120)), wxDefaultSize);
-
-```
-
-Duas coisas interessantes aqui. Primeiro, envolvemos os valores de pixel em chamadas `FromDIP`. Isso garante que os tamanhos fiquem corretos em telas de alta densidade (High DPI) em determinados sistemas operacionais.
-
-Segundo, deixamos o tamanho do botão como `wxDefaultSize`. O framework wxWidgets utiliza os controles nativos do sistema, portanto os botões têm tamanhos diferentes dependendo da plataforma. Deixamos ele calcular o tamanho correto de acordo com o sistema operacional de destino.
-
-Não apenas os controles deixam de se esticar quando o usuário redimensiona a janela, mas também tivemos que calcular manualmente as posições para obter, por exemplo, as margens de 10px ao redor do botão. Isso pode ser feito de forma muito mais simples usando **sizers**.
+Observe que usamos os IDs padrão para os comandos de área de transferência no menu *Edit*: `wxID_CUT`, `wxID_COPY` e `wxID_PASTE`[cite: 1].
 
 ---
 
-## Apresentando o wxBoxSizer
+## O Problema
 
-Existe uma família inteira de sizers, incluindo `wxBoxSizer`, `wxGridSizer`, `wxFlexGridSizer`, entre outros. O *box sizer*, sendo o mais simples, é também o mais utilizado, e uma variedade surpreendentemente grande de layouts pode ser desenvolvida usando apenas essa variante básica.
-
-O uso para todas as variantes de sizer é basicamente o mesmo: criamos o objeto sizer, adicionamos os controles a ele e o definimos como o sizer do controle pai.
+Em teoria, usar os IDs padrão deveria garantir que esses comandos de menu fossem manipulados corretamente pelo controle de texto[cite: 1]. Afinal, se checarmos o código-fonte do `wxTextCtrl`, vemos que o controle realmente manipula os eventos de menu relacionados[cite: 1]:
 
 ```cpp
-auto sizer = new wxBoxSizer(wxVERTICAL);
-auto panel = new wxPanel(this);
-panel->SetBackgroundColour(wxColour(200, 100, 100));
-auto button = new wxButton(this, wxID_ANY, "Click Me!");
-sizer->Add(panel, 1, wxEXPAND | wxALL, FromDIP(10));
-sizer->Add(button, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(10));
-this->SetSizer(sizer);
+// wxTextCtrl sources
+wxBEGIN_EVENT_TABLE(wxTextCtrl, wxTextCtrlBase)
+    EVT_DROP_FILES(wxTextCtrl::OnDropFiles)
+    EVT_CHAR(wxTextCtrl::OnChar)
+    EVT_KEY_DOWN(wxTextCtrl::OnKeyDown)
+    EVT_MENU(wxID_CUT, wxTextCtrl::OnCut)
+    EVT_MENU(wxID_COPY, wxTextCtrl::OnCopy)
+    EVT_MENU(wxID_PASTE, wxTextCtrl::OnPaste)
+    EVT_MENU(wxID_UNDO, wxTextCtrl::OnUndo)
+    EVT_MENU(wxID_REDO, wxTextCtrl::OnRedo)
+    EVT_MENU(wxID_CLEAR, wxTextCtrl::OnDelete)
+    EVT_MENU(wxID_SELECTALL, wxTextCtrl::OnSelectAll)
+    EVT_CONTEXT_MENU(wxTextCtrl::OnContextMenu)
+    EVT_UPDATE_UI(wxID_CUT, wxTextCtrl::OnUpdateCut)
+    EVT_UPDATE_UI(wxID_COPY, wxTextCtrl::OnUpdateCopy)
+    EVT_UPDATE_UI(wxID_PASTE, wxTextCtrl::OnUpdatePaste)
+    EVT_UPDATE_UI(wxID_UNDO, wxTextCtrl::OnUpdateUndo)
+    EVT_UPDATE_UI(wxID_REDO, wxTextCtrl::OnUpdateRedo)
+    EVT_UPDATE_UI(wxID_CLEAR, wxTextCtrl::OnUpdateDelete)
+    EVT_UPDATE_UI(wxID_SELECTALL, wxTextCtrl::OnUpdateSelectAll)
+wxEND_EVENT_TABLE()
 
 ```
 
-Com apenas essas poucas linhas, obtemos um layout organizado com margens e o comportamento de esticamento correto.
+Sendo assim, deveríamos ser capazes de copiar, cortar e colar usando nossos comandos de menu[cite: 1]. E se você testar isso no macOS, vai ver que realmente funciona — ou seja, os eventos funcionam lá![cite: 1]
 
-No entanto, o framework oferece até liberdade demais para o usuário: ele pode redimensionar a janela para um tamanho ridiculamente pequeno e inutilizável.
+Bem, não tão rápido[cite: 1]. Na verdade, a implementação do wxWidgets no Mac lida com eventos de área de transferência de forma nativa, ignorando o próprio mecanismo de eventos da biblioteca[cite: 1]. Se tentarmos esse mesmo código no Windows e no Linux, veremos que não há nenhuma reação aos eventos de área de transferência[cite: 1].
 
-Existem duas maneiras de resolver isso. A primeira é usar `SetMinClientSize` no final do construtor do `MyFrame`:
+Então, o que há de errado?[cite: 1]
 
-```cpp
-this->SetMinClientSize(FromDIP(wxSize(300, 200)));
-
-```
-
-Ou definir as dimensões do painel desde o início e então usar `SetSizerAndFit`. Isso redimensionará a janela para o menor tamanho possível (restrito pelo tamanho do painel no nosso caso) e garantirá que o usuário não possa encolhê-la ainda mais:
-
-```cpp
-auto sizer = new wxBoxSizer(wxVERTICAL);
-// Aqui definimos o tamanho do painel
-auto panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(400, 250)));
-panel->SetBackgroundColour(wxColour(200, 100, 100));
-auto button = new wxButton(this, wxID_ANY, "Click Me!");
-sizer->Add(panel, 1, wxEXPAND | wxALL, FromDIP(10));
-sizer->Add(button, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(10));
-// note o "...AndFit"
-this->SetSizerAndFit(sizer);
-
-```
-
-Com qualquer uma dessas técnicas, o tamanho mínimo será mantido pelo framework.
+O problema é que o framework envia esses eventos para a janela principal (*main frame*), e não para o nosso campo de texto[cite: 1]. Não há propagação para cima porque o *main frame* está no topo da hierarquia de janelas, portanto os campos de texto nunca recebem os eventos da área de transferência[cite: 1].
 
 ---
 
-## Explorando os Parâmetros do Sizer
+## A Solução
 
-Mas o que significam todos esses valores que passamos para o método `Add` do sizer? Vamos analisar mais de perto a primeira chamada.
+Precisamos propagar manualmente os eventos de área de transferência para o campo de texto correto[cite: 1]. Como podemos ter mais de um campo, queremos encontrar aquele que está focado no momento e enviar os eventos `EVT_MENU` e `EVT_UPDATE_UI` apropriados para ele[cite: 1].
 
-### Item
-
-Obviamente podemos adicionar controles (ou seja, classes derivadas de `wxWindow`) aos nossos sizers, mas não é só isso. Outros sizers também podem ser adicionados. Isso abre mais possibilidades, como centralizar tanto na vertical quanto na horizontal, algo que exploraremos mais adiante.
-
-### Proporção (Proportion)
-
-Este parâmetro é interessante. Especificar `0` indica que não queremos que o item se estique na direção do sizer. Qualquer outro valor significa que o controle se esticará proporcionalmente ao valor total de proporção de todos os itens adicionados àquele sizer.
-
-Se quisermos que um controle ocupe 1/3 da altura disponível e o outro preencha os 2/3 restantes, podemos fazer assim:
+Para fazer isso, devemos sobrescrever o método padrão `ProcessEvent` na classe `MyFrame`[cite: 1]. Primeiro, adicione a declaração na classe `MyFrame`[cite: 1]:
 
 ```cpp
-auto sizer = new wxBoxSizer(wxVERTICAL);
-auto panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(400, 100)));
-panel->SetBackgroundColour(wxColour(200, 100, 100));
-auto otherPanel = new wxPanel(this);
-otherPanel->SetBackgroundColour(wxColour(100, 200, 100));
-auto button = new wxButton(this, wxID_ANY, "Click Me!");
-sizer->Add(panel, 1, wxEXPAND | wxALL, FromDIP(10));
-sizer->Add(otherPanel, 2, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(10));
-sizer->Add(button, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(10));
-this->SetSizerAndFit(sizer);
+class MyFrame : public wxFrame {
+public:
+    MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size);
+private:
+    bool ProcessEvent(wxEvent &event) override;
+};
 
 ```
 
-O primeiro painel é adicionado com `proportion = 1`, e o outro com `proportion = 2`. A soma desses parâmetros é 3, portanto o primeiro preenche 1/3 do espaço vertical disponível, enquanto o segundo se estica para preencher os 2/3 restantes. Como criamos nosso sizer na direção vertical (`auto sizer = new wxBoxSizer(wxVERTICAL)`), todo esse esticamento ocorre ao longo do eixo vertical.
-
-### Flag (Sinalizadores)
-
-As *flags* em um *box sizer* servem para dois propósitos principais:
-
-1. Descrevem o posicionamento do elemento ao longo do eixo perpendicular à direção do sizer.
-2. Determinam quais margens (*borda*) devem ser aplicadas.
-
-As flags podem ser combinadas com o operador OR (`|`). Sendo assim, `wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM` no nosso caso significa que queremos que o painel se estique ao longo do eixo horizontal (lembrando que a orientação do sizer é vertical) – essa é a função da flag `wxEXPAND`.
-
-Em seguida, adicionamos as flags para as margens esquerda, direita e inferior. Omitimos a superior porque o controle acima usa a flag `wxALL`, portanto o espaçamento acima do nosso controle já é garantido pela margem inferior do controle anterior.
-
-Da mesma forma, as flags `wxALIGN_CENTER | wxLEFT | wxRIGHT | wxBOTTOM` para o botão aplicam as margens esquerda, direita e inferior, garantindo que o botão fique centralizado na direção horizontal (`wxALIGN_CENTER`).
-
-A lista completa de flags disponíveis pode ser encontrada na documentação do wxWidgets.
-
-### Borda (Border)
-
-Esse é o tamanho da borda ou margem. No nosso exemplo, usamos 10 pixels independentes de densidade (DIP) em todos os cantos para alcançar um layout proporcional e agradável.
-
----
-
-## Aninhando Box Sizers
-
-Aninhando *box sizers* de forma inteligente, podemos alcançar excelentes resultados sem nunca precisar recorrer a subclasses mais avançadas de `wxSizer`.
-
-Os controles dentro do nosso painel podem ter seus próprios sizers — essa seria a forma mais simples de aninhá-los:
+Em seguida, adicione a implementação[cite: 1]:
 
 ```cpp
-auto sizer = new wxBoxSizer(wxVERTICAL);
-auto panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(400, 250)));
-auto list = new wxListView(panel);
-list->InsertColumn(0, "Column 1");
-list->SetColumnWidth(0, FromDIP(100));
-for (int i = 0; i < 5; i++) {
-    list->InsertItem(i, wxString::Format("Item %d", i));
+bool MyFrame::ProcessEvent(wxEvent &event) {
+    static wxEvent *lastEvent = nullptr;
+
+    if (event.GetEventType() == wxEVT_MENU || event.GetEventType() == wxEVT_UPDATE_UI) {
+        if (lastEvent != &event) {
+            lastEvent = &event;
+            auto focusedChild = wxFindFocusDescendant(this);
+            if (focusedChild && focusedChild->GetEventHandler()->ProcessEvent(event)) {
+                lastEvent = nullptr;
+                return true;
+            }
+            lastEvent = nullptr;
+        }
+    }
+
+    return wxFrame::ProcessEvent(event);
 }
-auto itemDesc = new wxStaticText(panel, wxID_ANY, "Here is a description of the selected item. \n\nIt can be as long as you want it to be, \neven spanning multiple lines.");
-auto panelSizer = new wxBoxSizer(wxHORIZONTAL);
-panelSizer->Add(list, 1, wxEXPAND | wxRIGHT, FromDIP(10));
-panelSizer->Add(itemDesc, 2, wxEXPAND);
-panel->SetSizerAndFit(panelSizer);
-auto button = new wxButton(this, wxID_ANY, "Click Me!");
-sizer->Add(panel, 1, wxEXPAND | wxALL, FromDIP(10));
-sizer->Add(button, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(10));
-this->SetSizerAndFit(sizer);
 
 ```
 
-Este exemplo adiciona um controle de lista (lembre-se de incluir `#include <wx/listctrl.h>`) e uma descrição ao painel. Desta vez, adicionamos nosso novo sizer ao painel (e não ao *frame* principal), aninhando os sizers e garantindo o comportamento de redimensionamento automático.
+Sobrescrevemos o comportamento padrão para dois tipos de eventos[cite: 1]:
 
----
+1. **`wxEVT_MENU`**: Disparado quando o usuário clica em um item de menu. Inicia uma ação da área de transferência[cite: 1].
+2. **`wxEVT_UPDATE_UI`**: Disparado quando o item de menu precisa de atualização, por exemplo, quando o usuário abre o menu[cite: 1]. Essa é uma oportunidade para o controle atualizar a aparência de um item da interface, como desabilitar (deixar cinza) os itens *Cut* ou *Copy* quando não houver nada selecionado[cite: 1].
 
-## Adicionando Sizers a Outros Sizers
-
-Na verdade, se o único propósito do painel for gerenciar o redimensionamento automático dos controles, nem precisamos dele. Podemos adicionar os controles diretamente ao *frame* principal, criar um sizer separado para eles e adicionar esse sizer ao sizer principal (em vez de adicionar o painel ao sizer principal).
-
-```cpp
-auto sizer = new wxBoxSizer(wxVERTICAL);
-auto list = new wxListView(this);
-list->InsertColumn(0, "Column 1");
-list->SetColumnWidth(0, FromDIP(100));
-for (int i = 0; i < 5; i++) {
-    list->InsertItem(i, wxString::Format("Item %d", i));
-}
-auto itemDesc = new wxStaticText(this, wxID_ANY, "Here is a description of the selected item. \n\nIt can be as long as you want it to be, \neven spanning multiple lines.");
-auto listPickerSizer = new wxBoxSizer(wxHORIZONTAL);
-listPickerSizer->Add(list, 1, wxEXPAND | wxRIGHT, FromDIP(10));
-listPickerSizer->Add(itemDesc, 2, wxEXPAND);
-auto button = new wxButton(this, wxID_ANY, "Click Me!");
-// adicionando um sizer diretamente a outro sizer
-sizer->Add(listPickerSizer, 1, wxEXPAND | wxALL, FromDIP(10));
-sizer->Add(button, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(10));
-this->SetSizerAndFit(sizer);
-
-```
-
----
-
-## Centralizando Controles em Ambas as Direções
-
-Uma das tarefas comuns, porém ligeiramente desafiadoras envolvendo sizers aninhados, é centralizar um controle tanto na horizontal quanto na vertical. Isso pode ser alcançado usando dois *Box Sizers* como neste exemplo:
-
-```cpp
-auto verticalSizer = new wxBoxSizer(wxVERTICAL);
-auto horizontalSizer = new wxBoxSizer(wxHORIZONTAL);
-auto panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, FromDIP(wxSize(400, 300)));
-panel->SetBackgroundColour(wxColour(200, 100, 100));
-horizontalSizer->Add(panel, 0, wxALIGN_CENTER);
-verticalSizer->Add(horizontalSizer, 1, wxALIGN_CENTER); // Note a proporção!
-this->SetSizerAndFit(verticalSizer);
-
-```
-
-Primeiro, adicionamos o painel ao sizer horizontal. A proporção é definida como zero, o que significa que o painel não se esticará horizontalmente. No entanto, ele ficará centralizado na direção perpendicular graças à flag `wxALIGN_CENTER`.
-
-Analisando a estrutura, isso significa que o sizer horizontal cuidará de centralizar o item na vertical. Agora precisamos de um sizer vertical para centralizar o painel horizontalmente.
-
-O detalhe interessante aqui é o parâmetro de proporção ser definido como 1. Se o definíssemos como 0, não haveria esticamento ao longo do eixo do `verticalSizer` e o painel ficaria preso no topo. Mas, ao definir a proporção para 1, "esticamos" o `horizontalSizer` verticalmente, permitindo que ele centralize o painel na direção vertical.
+Nosso algoritmo localiza o controle focado e repassa o evento para ele[cite: 1]. Observe a verificação `if (lastEvent != &event)`[cite: 1]. Essa mecânica é necessária para evitar um loop infinito de eventos: quando repassamos um evento para um controle, ele propaga de volta para o pai, atingindo eventualmente o `MyFrame` e entrando no `ProcessEvent` novamente[cite: 1]. Nesse ponto, precisamos quebrar o ciclo usando nossa variável estática[cite: 1].
 
 ---
 
 ## Conclusão
 
-Neste post, exploramos os conceitos básicos de layout de interface no wxWidgets. Apresentamos o layout absoluto, evoluímos para o redimensionamento automático e exploramos as particularidades do `wxBoxSizer`.
-
-Essa classe simples pode ser bastante útil tanto para interfaces de usuário simples quanto para as mais avançadas, graças à capacidade de aninhar sizers.
+E é isso[cite: 1]! Essa solução rápida resolve o comportamento dos itens do menu *Edit* no Linux e no Windows, fazendo as ações de área de transferência funcionarem perfeitamente[cite: 1].

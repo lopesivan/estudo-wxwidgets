@@ -14,4 +14,5 @@ private:
     void OnAbout(wxCommandEvent& event);
 
     wxListCtrl* m_list = nullptr;
+    wxListBox*  m_categoryList = nullptr;
 };

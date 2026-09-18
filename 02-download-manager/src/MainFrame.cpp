@@ -8,7 +8,7 @@ MainFrame::MainFrame()
 {
     wxXmlResource::Get()->InitAllHandlers();
 
-    // resources/main.xrc fica ao lado do executável (ver CMakeLists.txt)
+    // resources/main.xrc fica ao lado do executável
     wxFileName xrcPath(wxStandardPaths::Get().GetExecutablePath());
     xrcPath.SetFullName("");
     xrcPath.AppendDir("resources");
@@ -18,17 +18,29 @@ MainFrame::MainFrame()
         wxLogError("Falha ao carregar %s", xrcPath.GetFullPath());
 
     wxXmlResource::Get()->LoadFrame(this, nullptr, "MainFrame");
-    // wxFrame handler já anexa menuBar, toolBar e statusBar automaticamente
+
+    // Aumentado o tamanho mínimo da janela
+    SetMinClientSize(FromDIP(wxSize(850, 500)));
 
     m_list = XRCCTRL(*this, "downloadList", wxListCtrl);
+    m_categoryList = XRCCTRL(*this, "categoryList", wxListBox);
 
-    m_list->InsertColumn(0, "Arquivo",    wxLIST_FORMAT_LEFT,  300);
-    m_list->InsertColumn(1, "Tamanho",    wxLIST_FORMAT_RIGHT, 100);
-    m_list->InsertColumn(2, "Progresso",  wxLIST_FORMAT_RIGHT, 100);
-    m_list->InsertColumn(3, "Velocidade", wxLIST_FORMAT_RIGHT, 120);
-    m_list->InsertColumn(4, "Estado",     wxLIST_FORMAT_LEFT,  120);
+    if (m_categoryList)
+    {
+        m_categoryList->SetSelection(0);
+    }
 
-    PopulateFakeData();
+    // Larguras ajustadas das colunas para evitar cortes de texto
+    if (m_list)
+    {
+        m_list->InsertColumn(0, "Arquivo",    wxLIST_FORMAT_LEFT,  FromDIP(180));
+        m_list->InsertColumn(1, "Tamanho",    wxLIST_FORMAT_RIGHT, FromDIP(90));
+        m_list->InsertColumn(2, "Progresso",  wxLIST_FORMAT_RIGHT, FromDIP(90));
+        m_list->InsertColumn(3, "Velocidade", wxLIST_FORMAT_RIGHT, FromDIP(110));
+        m_list->InsertColumn(4, "Estado",     wxLIST_FORMAT_LEFT,  FromDIP(110));
+
+        PopulateFakeData();
+    }
 
     if (wxStatusBar* status = GetStatusBar())
     {
